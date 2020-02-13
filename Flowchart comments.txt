@@ -1,0 +1,17 @@
+***Flowchart comments***
+
+Rename the "plotter function" into "Resulting structure plotter" because we obtain
+the results and plot them such that we understand how the aileron structure looks like.
+
+Change the part of the load modes into:
+- Point loads	--> axial loads, shear loads
+- Bending loads	--> axial loads
+- Torsional loads  --> shear force
+
+Give the two Numerical Integrator Functions different names if they are not the same function.
+
+Questions:
+	Are all the results obtained from the displacement angle? 
+	For the Numerical Integrator & Transformation Function what is the purpose of 
+	having the Numerical Parameters block next to it? Is this because the functions
+	can be altered by the use of given parameters?
