@@ -1,4 +1,4 @@
-# Temperature image programme
+# Aero data image
 
 from numpy import *
 import matplotlib.pyplot as plt
@@ -26,29 +26,48 @@ for r in number_table:
   image.append(row)
   row=[]
 
-def matrix(n,m=0,e=0):
-    if m==0:
-        m=n
-    A=[]
-    for i in range(n):
-        A.append([e]*m)
-    return A
+##def matrix(n,m=0,e=0):
+##    if m==0:
+##        m=n
+##    A=[]
+##    for i in range(n):
+##        A.append([e]*m)
+##    return A
+##
+##def transpose(A):
+##    if type(A[0])==int or type(A[0])==float:
+##        return vector(A)
+##
+##    T=matrix(len(A[0]),len(A))
+##    for i in range(len(A)):
+##        for j in range(len(A[0])):
+##            T[j][i]=A[i][j]
+##    return T
+##image=transpose(image)
 
-def transpose(A):
-    if type(A[0])==int or type(A[0])==float:
-        return vector(A)
-
-    T=matrix(len(A[0]),len(A))
-    for i in range(len(A)):
-        for j in range(len(A[0])):
-            T[j][i]=A[i][j]
-    return T
-
-image=transpose(image)
-
-width = len(image[0])
-height = len(image)
+##width = len(image[0])
+##height = len(image)
 
 
-plt.imshow(image, extent=(0,width,0,height),interpolation='nearest', cmap=cm.gist_rainbow)
+##coord_sys=(1.611,0,-0.505,0)
+##plt.xlabel('x-axis')
+##plt.ylabel('z-axis')
+##
+##plt.imshow(image, extent=coord_sys,interpolation='nearest', cmap=cm.gist_rainbow)
+##plt.colorbar()
+##plt.show()
+
+
+def average(row):
+  av=0
+  for e in row:
+    av+=e
+  av/=len(row)
+  return av
+y=[]
+for row in image:
+  y.append(average(row))
+x=arange(0,81)
+
+plt.plot(x,y)
 plt.show()
