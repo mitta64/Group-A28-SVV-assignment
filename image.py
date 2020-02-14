@@ -57,9 +57,16 @@ for r in number_table:
 ##plt.colorbar()
 ##plt.show()
 
+
+def average(row):
+  av=0
+  for e in row:
+    av+=e
+  av/=len(row)
+  return av
 y=[]
 for row in image:
-  y.append(row[20])
+  y.append(average(row))
 x=arange(0,81)
 
 plt.plot(x,y)
