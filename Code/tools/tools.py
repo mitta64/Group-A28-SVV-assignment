@@ -42,14 +42,16 @@ Created on Mon Feb 17 15:16:23 2020
 "Encode representation of cross section plus plot"
 
 #============================================================
-"Integrator"
-
-def integral(f,x1,x2,res=10000):
-    i=(x2-x1)/res   # interval
-    A=0
-    a=f(x1)
-    for e in range(res):
-        b=f(x1+(e+1)*i)
-        A+=(a+b)*i/2
-        a=b
-    return A
+def integrate_z(grid, Ca = 0.505, h_res = 41, v_res = 81):
+  """used to integrate the .dat aero data over the x-axis"""
+  
+  solution = []
+  for column in range(len(grid[0])):
+    A = 0
+    for row in range(1,len(grid)-1):
+      A += grid[row][column]/v_res*Ca
+      
+      A += grid[0][column]/v_res*Ca*0.5
+      A += grid[v_res-1][column]/v_res*Ca*0.5
+    solution.append(A)
+  return solution
