@@ -7,41 +7,111 @@ Created on Mon Feb 17 15:16:23 2020
 #=======================================================================================
 "Cross sectional properties for bending"
 "Requirement: Make it suitable for a box and an aileron cross section"
-#Compute Centroid
 
-
-
-#Compute Second Moment of Inertia
-
+class CrossSectionalProperties(object):
+    """A class that computes:
+        
+        - Boom Areas & Locations
+        - Centroid
+        - Second Moment of Inertias I_xx, I_yy, I_xy
+        - Shear Centre
+        - Torsional Stiffness
+        
+        #==========================    
+        Outputs: Boom Areas & Boom Locations
+        Inputs: - Chord length aileron
+                - Height aileron
+                - Spar thickness
+                - Stringer spacing delta_st
+                - Number of stringers n_st
+                - Stringer locations
+                - Skin thickness
+                - Stringer height
+                - Stringer width
+                - Stringer thickness 
+        #==========================
+        Output: Centroid
+        Inputs: See input list of Boom Areas
+        #==========================    
+        Outputs: Second Moment of Inertias I_xx, I_yy, I_xy
+        Inputs: See input list of Boom Areas
+        #==========================    
+        Output: Shear Centre
+        Inputs: - Boom areas 
+                - Boom locations 
+                - Skin thickness
+        #==========================    
+        Output: Torsional Stiffness
+        Inputs: - Shear flow distributions
+        #==========================  
+        Output: Visual representation of cross section
+                    -> Black colour lines for the skin
+                    -> Red dots for booms
+        Inputs: - Aileron height
+                - Aileron chord length
+                - Skin thickness
+                - Boom areas
+                - Boom locations
+        #==========================  
+    """
+    #========================       
+    #Compute Boom Areas & Boom Locations
+    #========================
+    def booms(self):
+        
+        
+        
+        
+    
+    #========================       
+    #Compute Centroid
+    #========================
+    def centroid(self):
+        
+        
+    #========================       
+    #Compute Second Moment of Inertia
+    #========================
+    def second_moi(self):
+    
+    
+    
+    
     #I_xx
-
-
+    
+    
     #I_yy
-
+    
     
     #I_xy
-
-
-
-
-
-#=======================================================================================
-"Cross sectional properties for shear"
-"Requirement: Make it suitable for a box and an aileron cross section"
-
-#Compute Shear Centre
+    
+    #========================       
+    #Compute Shear Centre
+    #========================
     # Requirements:
         # Locations of the booms
         # Skin thickness
         # Skin Locations
-
-
-
-#Compute torsional stiffness
+    def shear_centre(self):
+        
+        
     
-"Encode representation of cross section plus plot"
+    #========================       
+    #Compute Torsional Stiffness
+    #========================
+    def torsional_stiffness(self):
+        
+    
+    
+    
+    
+    
 
-#============================================================
+    
+
+
+
+#=======================================================================================
 "Integrator"
 
 def integral(f,x1,x2,res=10000):
