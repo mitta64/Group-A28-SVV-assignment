@@ -12,8 +12,22 @@ def _theta(i, N):
     return (i-1)*np.pi/N
 
 def _coord(length, theta, theta_next):
-    # length: length in specified axis
+    # length: length in specified axis (so la or Ca)
     # theta: i-th theta
     # theta_next: (i+1)-th theta
-    return 0.5*(length/2*(1-np.cos(theta))+la/2*(1-np.cos(theta_next)))
+    return 0.5*(length/2*(1-np.cos(theta))+length/2*(1-np.cos(theta_next)))
+
+qdatafile = open("aerodynamicloadf100.dat", "r")
+lines = qdatafile.readlines()
+
+count = 0
+coord = []
+for line in lines:
+    count += 1
+    currentline = line.split(",")
+    spancoord = []
+    for i in currentline:
+        spancoord.append(i)
+    coord.append(spancoord)
+coord = np.array(coord)
     
