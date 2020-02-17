@@ -12,8 +12,34 @@ def _theta(i, N):
     return (i-1)*np.pi/N
 
 def _coord(length, theta, theta_next):
-    # length: length in specified axis
+    # length: length in specified axis (so la or Ca)
     # theta: i-th theta
     # theta_next: (i+1)-th theta
-    return 0.5*(length/2*(1-np.cos(theta))+la/2*(1-np.cos(theta_next)))
+    return 0.5*(length/2*(1-np.cos(theta))+length/2*(1-np.cos(theta_next)))
+
+# Coordinates of the aerodynamic load
+la = 1.611
+Ca = 0.505
+zcoord = [] #chordwise - 81 elements
+for i in np.arange(81):
+    zcoord.append(_coord(Ca, _theta(i, 41), _theta(i+1,41)) )
+    
+xcoord = [] #spanwise - 41 elements
+for j in np.arange(41):
+    xcoord.append(_coord(la, _theta(j, 41), _theta(j+1,41)) )
+        
+
+# Saves aerodynamic load in an array
+qdatafile = open("aerodynamicloadf100.dat", "r")
+lines = qdatafile.readlines()
+
+qforces = []
+for line in lines:
+    currentline = line.split(",")
+    spanwise = []
+    for i in currentline:
+        spanwise.append(i)
+    qforces.append(spanwise)
+    
+qforces = np.array(qforces) #chord*span (z*x) = (81*41)
     
