@@ -1,0 +1,20 @@
+def aero_data():
+  file="aerodynamicloadf100.dat"
+  csv=open(file, "r").read()
+
+  table = csv.split("\n")
+  table=table[:-1]
+
+  number_table=[]
+  for element in table:
+    number_table.append(eval(element))
+
+  row=[]
+  grid=[]
+  for r in number_table:
+    for e in r:
+      row.append(float(e*10**3))
+    grid.append(row)
+    row=[]
+
+  return grid
