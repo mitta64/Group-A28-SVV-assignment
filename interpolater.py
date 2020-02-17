@@ -4,6 +4,7 @@ Created on Mon Feb 17 16:37:42 2020
 
 @author: changkyupark
 """
+import numpy as np
 
 def lagrange_basis(nodes, x=None):
     if x is None: 
