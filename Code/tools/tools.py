@@ -5,6 +5,39 @@ Created on Mon Feb 17 15:16:23 2020
 @author: Group A28 
 """
 #=======================================================================================
+"Class containing all Aircraft data"
+class Aircraft(object):
+    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
+        self.name = name
+        self.C_a = C_a          #"Chord length aileron[m]"
+        self.l_a = l_a          #"Span of the aileron[m]"
+        self.x_1 = x_1          #"x-location of hinge 1 [m]"
+        self.x_2 = x_2          #"x-location of hinge 2 [m]"
+        self.x_3 = x_3          #"x-location of hinge 3 [m]"
+        self.x_a = x_a          #"Distance between actuator 1 and 2 [cm]"
+        self.h = h              #"Aileron height[cm]"
+        self.t_sk = t_sk        #"Skin thickness [mm]"
+        self.t_sp = t_sp        #"Spar thickness [mm]"
+        self.t_st = t_st        #"Thickness of stiffener[mm]"
+        self.h_st = h_st        #"Height of stiffener[cm]"
+        self.w_st = w_st        #"Width of stiffener[cm]"
+        self.n_st = n_st        #"Number of stiffeners [-]"
+        self.d_1 = d_1          #"Vertical displacement hinge 1[cm]"
+        self.d_3 = d_3          #"Vertical displacement hinge 3[cm]"
+        self.theta = theta      #"Maximum upward deflection[deg]"
+        self.P = P              #"Load in actuator 2[kN]"
+
+    def description(self):
+        prop = vars(self)
+
+        for i in prop.keys():
+            print(str(i)+"="+'\t'+str(prop[i]))
+
+f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
+
+
+
+#=======================================================================================
 "Cross sectional properties for bending"
 "Requirement: Make it suitable for a box and an aileron cross section"
 #Compute Centroid
