@@ -91,3 +91,13 @@ plt.xlabel('x-axis')
 plt.ylabel('z-axis')
 plt.plot(x,int_5)
 plt.show()
+
+
+#=======================================================================================
+"plotting functions"
+
+
+
+
+
+
