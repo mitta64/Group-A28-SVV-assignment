@@ -198,9 +198,21 @@ plt.show()
 
 #=======================================================================================
 "plotting functions"
+def plot(data, thing_to_plot, unit):
+  """ Plot deflection or twist data on a 2D graph
+        thing_to_plot and unit should be written as strings, like 'deflection', 'm' '"""
+  x=np.linspace(0,1.611,len(data))
+  plt.plot(x,data)
+  plt.xlabel('span (m)')
+  plt.ylabel(thing_to_plot + ' (' + unit + ')')
+  plt.show()
+  return()
 
-
-
+""" how to use """ 
+func = np.sin(np.linspace(0,10,100))
+thing = 'deflection'
+unit = 'm'
+plot(func, thing, unit)
 
 
 
