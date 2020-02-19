@@ -153,6 +153,15 @@ f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1
 #=======================================================================================
 "Integration functions for z and x direction"
 
+def macaulay(x, x_n, pwr=1):
+  "returns result of the step function for [x-x_n]^pwr"
+  result = (x-x_n)
+  if result>=0:
+    return result**pwr
+  else:
+    return 0
+
+
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
   Ca = 0.505
