@@ -105,14 +105,18 @@ class CrossSectionalProperties(object):
     #Compute Centroid
     #========================
     def centroid(self):
+        x_a = np.zeros(shape=(2, 3 + f100.n_st))
+
         x_circ = 2 * f100.h / (3 * np.pi)
         a_circ = np.pi * f100.h/2 * f100.t_sk
+        x_a[0,0]
 
         x_spr = - f100.h/2
         a_spr = f100.h/2 * f100.t_sp
 
         x_skn = - (f100.C_a - f100.h/2)
         a_skn = np.sqrt( (f100.h / 2)**2 +(f100.C_a - f100.h/2)**2) * f100.t_sk
+
 
 
         pass
