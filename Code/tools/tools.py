@@ -31,11 +31,10 @@ class Aircraft(object):
         self.theta  = theta     #"Maximum upward deflection[deg]"
         self.P      = P*1000        #"Load in actuator 2[N]"
 
-    def description(self):
-        prop = vars(self)
 
-        for i in prop.keys():
-            print(str(i)+"="+'\t'+str(prop[i]))
+#=======================================================================================
+    "get the necessary data"
+    from data import aero_data, grid, f100
 
 
 #=======================================================================================
@@ -168,10 +167,6 @@ class Aircraft(object):
 
     
 
-f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
-
-#=======================================================================================
-"Integration functions for z and x direction"
 
 def macaulay(x, x_n, pwr=1):
   "returns result of the step function for [x-x_n]^pwr"
@@ -181,6 +176,33 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
+def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
+  """Constructs the matrix A such that Ax=b for the statically indeterminate
+  problem. Where:
+  A is the matrix
+  x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
+  b = ()
+  Inputs:
+  I = ('z':I_zz, 'y':I_yy)""" 
+  Ky = (1/(E*I['y']))
+  Kz = (1/(E*I['z']))
+  A = np.array([[1, 1,  1,  0,  0,  0,                              np.sin(alpha), 0,0,0,0,0],#Row 1
+                [0, 0,  0,  1,  1,  1,                              np.cos(alpha), 0,0,0,0,0],#Row 2
+                [-h/2.,   -h/2.,  -h/2.,  -h/2. * (np.sin(alpha)+np.cos(alpha)),0, 0,0,0,0,0],#Row 3
+                [    0,       0,      0, x_1, x_2, x_3,  np.cos(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 4
+                [ -x_1,    -x_2,   -x_3,   0,   0,   0, -np.sin(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 5
+                [],#Row 6
+                [],#Row 7
+                [],#Row 8
+                [],#Row 9
+                [],#Row 10
+                [],#Row 11
+                [] #Row 12
+    ])
+
+
+#=======================================================================================
+"Integration functions for z and x direction"
 
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
@@ -191,31 +213,52 @@ def integrate_z(grid):
   solution = []
   for column in range(len(grid[0])):
     A = 0
-    for row in range(1,len(grid)-1):
+    for row in range(len(grid)):
       A += grid[row][column]/v_res*Ca
-      
-      A += grid[0][column]/v_res*Ca*0.5
-      A += grid[v_res-1][column]/v_res*Ca*0.5
+
     solution.append(A)
   return solution
 
 def integrate_x(x_list):
   """used to integrate the .dat aero data over the x-axis"""
   Ca = 0.505
+  span = 1.611
   h_res = 41
   v_res = 81
   
   solution = []
   prev = 0
   value = 0
-  for element in range(len(x_list)-1,-1,-1):
-    value += (prev+x_list[element])/2
+  for element in range(len(x_list)):
+    value += (prev+x_list[element])/2*(span/h_res)
     prev=x_list[element]
     
     solution.append(value)
   return solution
 
+def def_integral(f,x1,x2,res=10000):
+    interval = (x2-x1)/res
+    solution = 0
+    a=f(x1)
+    for e in range(res):
+        b=f(x1+(e+1)*interval)
+        solution += (a+b)*interval/2
+        a=b
+    return solution
 
+def indef_integral(f,x1,x2,res=10000):
+    interval = (x2-x1)/res
+    solution = []
+    value = 0
+    a = f(x1)
+    for e in range(res):
+        b = f(x1+(e+1)*interval)
+        value += (a+b)*interval/2
+        solution.append(value)
+        a = b
+    return solution
+
+#=======================================================================================
 "Interpolators 2 different ways: linear of cubic for cubic interpolation 2 boundary conditions are required"
 def spline_coefficient(node,value):
     # IMPORTANT: needs a grid in chronological order (from small to big)
