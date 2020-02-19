@@ -144,10 +144,6 @@ import matplotlib.pyplot as plt
 
     
 
-f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
-
-#=======================================================================================
-"Integration functions for z and x direction"
 
 def macaulay(x, x_n, pwr=1):
   "returns result of the step function for [x-x_n]^pwr"
@@ -180,6 +176,10 @@ def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
                 [],#Row 11
                 [] #Row 12
     ])
+
+
+#=======================================================================================
+"Integration functions for z and x direction"
 
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
