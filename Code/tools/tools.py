@@ -162,6 +162,15 @@ f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1
 #=======================================================================================
 "Integration functions for z and x direction"
 
+def macaulay(x, x_n, pwr=1):
+  "returns result of the step function for [x-x_n]^pwr"
+  result = (x-x_n)
+  if result>=0:
+    return result**pwr
+  else:
+    return 0
+
+
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
   Ca = 0.505
@@ -195,6 +204,59 @@ def integrate_x(x_list):
     solution.append(value)
   return solution
 
+
+"Interpolator"
+def spline_coefficient(node,value):
+    # IMPORTANT: needs a grid in chronological order (from small to big)
+    #This function creates a matrix containing all the splines coefficients for every node,
+    #This way the main calculation only has to be done once, and spline_interpolator actually computes the value
+    #input: nodes (1d list), value at these nodes (1dlist)
+    #output Array containing Splinematrix
+
+    Splinematrix = []
+    for i in range(len(node)-1):
+        "si = a +b(x-c)"
+        a = value[i]
+        b=(value[i+1]-value[i])/(node[i+1]-node[i])
+        c = node[i]
+        print(a,b,c)
+        Splinematrix.append([a,b,c])
+    return np.array(Splinematrix)
+
+def spline_interpolator(Splinematrixx, node, inter_node):
+    # This function actually interpolates (1 point)
+    # input Splinematrix from previous function, all nodes (1d array), intervalue (the point to be interpolated)
+    # output value function at node
+
+    nodenumber=0
+    for i in node:
+        if inter_node<= node[nodenumber] or inter_node>node[-2]: #check at which spline to interpolate
+            break
+        else:
+            nodenumber+=1
+    nodenumber = nodenumber-1 #no
+    a= Splinematrixx[nodenumber,0]
+    b=Splinematrixx[nodenumber,1]
+    c=Splinematrixx[nodenumber,2]
+    si = a + b*(inter_node-c)
+    return si
+
+def plot(data, thing_to_plot, unit):
+  """ Plot deflection or twist data on a 2D graph
+        thing_to_plot and unit should be written as strings, like 'deflection', 'm' '"""
+  x=np.linspace(0,1.611,len(data))
+  plt.plot(x,data)
+  plt.xlabel('span (m)')
+  plt.ylabel(thing_to_plot + ' (' + unit + ')')
+  plt.show()
+  return()
+
+""" how to use """ 
+func = np.sin(np.linspace(0,10,100))
+thing = 'deflection'
+unit = 'm'
+plot(func, thing, unit)
+
 # """ How to use: """
 # grid = aero_data()
 # int_1 = integrate_z(grid)
@@ -213,7 +275,7 @@ def integrate_x(x_list):
 
 #=======================================================================================
 "plotting functions"
-
+''''
 
 
 
