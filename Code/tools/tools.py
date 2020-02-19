@@ -7,35 +7,11 @@ Created on Mon Feb 17 15:16:23 2020
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-#=============================================================================
-"Class containing all Aircraft data"
-class Aircraft(object):
-    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
-                            t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
-        self.name   = name
-        self.C_a    = C_a       #"Chord length aileron[m]"
-        self.l_a    = l_a       #"Span of the aileron[m]"
-        self.x_1    = x_1       #"x-location of hinge 1 [m]"
-        self.x_2    = x_2       #"x-location of hinge 2 [m]"
-        self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = x_a       #"Distance between actuator 1 and 2 [cm]"
-        self.h      = h         #"Aileron height[cm]"
-        self.t_sk   = t_sk      #"Skin thickness [mm]"
-        self.t_sp   = t_sp      #"Spar thickness [mm]"
-        self.t_st   = t_st      #"Thickness of stiffener[mm]"
-        self.h_st   = h_st      #"Height of stiffener[cm]"
-        self.w_st   = w_st      #"Width of stiffener[cm]"
-        self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = d_1       #"Vertical displacement hinge 1[cm]"
-        self.d_3    = d_3       #"Vertical displacement hinge 3[cm]"
-        self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = P         #"Load in actuator 2[kN]"
 
-    def description(self):
-        prop = vars(self)
 
-        for i in prop.keys():
-            print(str(i)+"="+'\t'+str(prop[i]))
+#=======================================================================================
+    "get the necessary data"
+    from data import aero_data, grid, f100
 
 
 #=======================================================================================
@@ -186,31 +162,52 @@ def integrate_z(grid):
   solution = []
   for column in range(len(grid[0])):
     A = 0
-    for row in range(1,len(grid)-1):
+    for row in range(len(grid)):
       A += grid[row][column]/v_res*Ca
-      
-      A += grid[0][column]/v_res*Ca*0.5
-      A += grid[v_res-1][column]/v_res*Ca*0.5
+
     solution.append(A)
   return solution
 
 def integrate_x(x_list):
   """used to integrate the .dat aero data over the x-axis"""
   Ca = 0.505
+  span = 1.611
   h_res = 41
   v_res = 81
   
   solution = []
   prev = 0
   value = 0
-  for element in range(len(x_list)-1,-1,-1):
-    value += (prev+x_list[element])/2
+  for element in range(len(x_list)):
+    value += (prev+x_list[element])/2*(span/h_res)
     prev=x_list[element]
     
     solution.append(value)
   return solution
 
+def def_integral(f,x1,x2,res=10000):
+    interval = (x2-x1)/res
+    solution = 0
+    a=f(x1)
+    for e in range(res):
+        b=f(x1+(e+1)*interval)
+        solution += (a+b)*interval/2
+        a=b
+    return solution
 
+def indef_integral(f,x1,x2,res=10000):
+    interval = (x2-x1)/res
+    solution = []
+    value = 0
+    a = f(x1)
+    for e in range(res):
+        b = f(x1+(e+1)*interval)
+        value += (a+b)*interval/2
+        solution.append(value)
+        a = b
+    return solution
+
+#=======================================================================================
 "Interpolators 2 different ways: linear of cubic for cubic interpolation 2 boundary conditions are required"
 def spline_coefficient(node,value):
     # IMPORTANT: needs a grid in chronological order (from small to big)
