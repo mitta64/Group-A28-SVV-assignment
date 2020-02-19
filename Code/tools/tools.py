@@ -181,6 +181,29 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
+def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
+  """Constructs the matrix A such that Ax=b for the statically indeterminate
+  problem. Where:
+  A is the matrix
+  x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
+  b = ()
+  Inputs:
+  I = ('z':I_zz, 'y':I_yy)""" 
+  Ky = (1/(E*I['y']))
+  Kz = (1/(E*I['z']))
+  A = np.array([[1, 1,  1,  0,  0,  0,                              np.sin(alpha), 0,0,0,0,0],#Row 1
+                [0, 0,  0,  1,  1,  1,                              np.cos(alpha), 0,0,0,0,0],#Row 2
+                [-h/2.,   -h/2.,  -h/2.,  -h/2. * (np.sin(alpha)+np.cos(alpha)),0, 0,0,0,0,0],#Row 3
+                [    0,       0,      0, x_1, x_2, x_3,  np.cos(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 4
+                [ -x_1,    -x_2,   -x_3,   0,   0,   0, -np.sin(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 5
+                [],#Row 6
+                [],#Row 7
+                [],#Row 8
+                [],#Row 9
+                [],#Row 10
+                [],#Row 11
+                [] #Row 12
+    ])
 
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
