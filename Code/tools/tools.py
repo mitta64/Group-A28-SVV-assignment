@@ -85,6 +85,7 @@ import matplotlib.pyplot as plt
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
 
+
         x_circ = - 4* (self.h/2)/(3 * np.pi)
         a_circ = np.pi * self.h/2 * self.t_sk
         arr_z_y_a[:,0] = [x_circ,0.,a_circ]
@@ -96,10 +97,14 @@ import matplotlib.pyplot as plt
         x_sk = - (self.h/4 + self.C_a/2)
         a_sk = np.sqrt((self.h/2)**2 + (self.C_a - self.h/2)**2) * self.t_sk
         arr_z_y_a[:,2:4] = [[x_spr,x_spr], [0.,0.], [a_spr,a_spr]]
+        
 
+        #arr_z_y_a[;,4:] =
+
+        self.cent = np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[0]])
         
         
-    # #========================       
+    # #============f1============
     # #Compute Second Moment of Inertia
     # #========================
     # def second_moi(self):
@@ -152,6 +157,29 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
+def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
+  """Constructs the matrix A such that Ax=b for the statically indeterminate
+  problem. Where:
+  A is the matrix
+  x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
+  b = ()
+  Inputs:
+  I = ('z':I_zz, 'y':I_yy)""" 
+  Ky = (1/(E*I['y']))
+  Kz = (1/(E*I['z']))
+  A = np.array([[1, 1,  1,  0,  0,  0,                              np.sin(alpha), 0,0,0,0,0],#Row 1
+                [0, 0,  0,  1,  1,  1,                              np.cos(alpha), 0,0,0,0,0],#Row 2
+                [-h/2.,   -h/2.,  -h/2.,  -h/2. * (np.sin(alpha)+np.cos(alpha)),0, 0,0,0,0,0],#Row 3
+                [    0,       0,      0, x_1, x_2, x_3,  np.cos(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 4
+                [ -x_1,    -x_2,   -x_3,   0,   0,   0, -np.sin(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 5
+                [],#Row 6
+                [],#Row 7
+                [],#Row 8
+                [],#Row 9
+                [],#Row 10
+                [],#Row 11
+                [] #Row 12
+    ])
 
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
@@ -328,7 +356,7 @@ def plot(data, thing_to_plot, unit):
 func = np.sin(np.linspace(0,10,100))
 thing = 'deflection'
 unit = 'm'
-plot(func, thing, unit)
+#plot(func, thing, unit)
 
 # """ How to use: """
 # grid = aero_data()
