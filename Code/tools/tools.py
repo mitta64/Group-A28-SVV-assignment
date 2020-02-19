@@ -158,9 +158,11 @@ class Aircraft(object):
     # #Compute Torsional Stiffness
     # #========================
     # def torsional_stiffness(self):
-        
-    
-    
+
+f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389,
+                    1.245, 30, 49.2)
+
+
     
     
     
