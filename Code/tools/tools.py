@@ -18,21 +18,26 @@ class Aircraft(object):
         self.x_1    = x_1       #"x-location of hinge 1 [m]"
         self.x_2    = x_2       #"x-location of hinge 2 [m]"
         self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = x_a/100       #"Distance between actuator 1 and 2 [m]"
-        self.h      = h/100      #"Aileron height[m]"
-        self.t_sk   = t_sk/1000     #"Skin thickness [m]"
-        self.t_sp   = t_sp/1000      #"Spar thickness [m]"
-        self.t_st   = t_st/1000      #"Thickness of stiffener[m]"
-        self.h_st   = h_st/100      #"Height of stiffener[m]"
-        self.w_st   = w_st/100      #"Width of stiffener[m]"
+        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
+        self.h      = round(h/100,8)      #"Aileron height[m]"
+        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
+        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
+        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
+        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
+        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
         self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = d_1/100       #"Vertical displacement hinge 1[m]"
-        self.d_3    = d_3/100       #"Vertical displacement hinge 3[m]"
+        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
+        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
         self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = P*1000        #"Load in actuator 2[N]"
+        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
+    def description(self):
 
+        prop = vars(self)
 
-#=======================================================================================
+        for i in prop.keys():
+            print(str(i) + "=" + '\t' + str(prop[i]))
+
+    #=======================================================================================
     "get the necessary data"
     from data import aero_data, grid, f100
 
@@ -119,7 +124,9 @@ class Aircraft(object):
 
         x_sk = - (self.h/4 + self.C_a/2)
         a_sk = np.sqrt((self.h/2)**2 + (self.C_a - self.h/2)**2) * self.t_sk
-        arr_z_y_a[:,2:4] = [[x_spr,x_spr], [0.,0.], [a_spr,a_spr]]
+        arr_z_y_a[:,2:4] = [[x_sk,x_sk], [0.,0.], [a_sk,a_sk]]
+
+        self.tst = arr_z_y_a
         
 
         #arr_z_y_a[;,4:] =
