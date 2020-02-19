@@ -17,18 +17,18 @@ class Aircraft(object):
         self.x_1    = x_1       #"x-location of hinge 1 [m]"
         self.x_2    = x_2       #"x-location of hinge 2 [m]"
         self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = x_a       #"Distance between actuator 1 and 2 [cm]"
-        self.h      = h         #"Aileron height[cm]"
-        self.t_sk   = t_sk      #"Skin thickness [mm]"
-        self.t_sp   = t_sp      #"Spar thickness [mm]"
-        self.t_st   = t_st      #"Thickness of stiffener[mm]"
-        self.h_st   = h_st      #"Height of stiffener[cm]"
-        self.w_st   = w_st      #"Width of stiffener[cm]"
+        self.x_a    = x_a/100   #"Distance between actuator 1 and 2 [m]"
+        self.h      = h /100    #"Aileron height [m]"
+        self.t_sk   = t_sk/1000 #"Skin thickness [m]"
+        self.t_sp   = t_sp/1000 #"Spar thickness [m]"
+        self.t_st   = t_st/1000 #"Thickness of stiffener[m]"
+        self.h_st   = h_st/100  #"Height of stiffener[m]"
+        self.w_st   = w_st/100  #"Width of stiffener[m]"
         self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = d_1       #"Vertical displacement hinge 1[cm]"
-        self.d_3    = d_3       #"Vertical displacement hinge 3[cm]"
+        self.d_1    = d_1/100   #"Vertical displacement hinge 1[m]"
+        self.d_3    = d_3/100   #"Vertical displacement hinge 3[m]"
         self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = P         #"Load in actuator 2[kN]"
+        self.P      = P *1000   #"Load in actuator 2 [N]"
 
     def description(self):
         prop = vars(self)
@@ -93,15 +93,56 @@ class Aircraft(object):
     
     
     def booms(self):
-        self.boom_area = ((self.w_st/100) * (self.t_st/1000) 
-                            + ((self.h_st - self.t_st/1000) * self.t_st))
-        aileron_circumference = (((2 * math.pi * (self.h / 2)) /2) 
+        
+        # Compute stringer area
+        self.boom_area = ((self.w_st) * (self.t_st)                             
+                            + ((self.h_st - self.t_st) * self.t_st))
+        
+        # Compute aileron circumference
+        aileron_circumference = (((2 * np.pi * (self.h / 2)) /2)                
                                 + 2 * math.sqrt((self.h /2)**2 
                                 + (self.C_a - (self.h / 2))**2))
-        self.boom_spacing = aileron_circumference / self.n_st
         
+        # Compute boom spacing
+        self.boom_spacing = aileron_circumference / self.n_st   
+
+        # Compute orientation stringer in semi-circle & triangular section      
+        angle_arc = (self.boom_spacing / (self.h / 2))                          
+        angle_triangle = (math.atan((self.h /2) / (self.C_a - (self.h /2))))                                                
         
-    
+        # Start array with Col 1 z coordinate & Col 2 y coordinate 
+        # Add stringers, starting at LE and going clockwise
+        self.boom_loc_area = np.array([0, 0])
+        
+        # Add stringer in upper arc section
+        boom_arc_up_loc = (np.array([                                               
+                -((self.h / 2) - (np.cos(angle_arc) * (self.h / 2) )),          
+                np.sin(angle_arc) * (self.h / 2)]))
+        
+        self.boom_loc_area = np.stack((self.boom_loc_area, boom_arc_up_loc))
+        
+        # Add stringers in upper triangular section
+        for i in np.linspace(3.5, 0.5 ,4):
+            boom_tri_up = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
+                                    i * self.boom_spacing * np.sin(angle_triangle)])
+            self.boom_loc_area = np.append(self.boom_loc_area, [boom_tri_up], axis = 0)
+            
+        # Add stringers in lower triangular section
+        for i in np.linspace(0.5, 3.5, 4):
+            boom_tri_down = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
+                                    -i * self.boom_spacing * np.sin(angle_triangle)])
+            self.boom_loc_area = np.append(self.boom_loc_area, [boom_tri_down], axis = 0)
+        
+        # Add stringer in lower arc section
+        boom_arc_down_loc = (np.array([                                               
+                -((self.h / 2) - (np.cos(angle_arc) * (self.h / 2) )),          
+                - np.sin(angle_arc) * (self.h / 2)]))
+        self.boom_loc_area = np.append(self.boom_loc_area, [boom_arc_down_loc], axis = 0)
+        
+        # Add column of boom areas to the total array
+        boom_area_column = np.full((11,1), self.boom_area)
+        self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
+        "Final output of booms function is self.boom_loc_area"
     # #========================       
     # #Compute Centroid
     # #========================
