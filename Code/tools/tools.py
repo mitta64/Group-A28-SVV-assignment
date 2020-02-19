@@ -110,11 +110,16 @@ class Aircraft(object):
 
         x_circ = - 4* (Aircraft.h/2)/)(3 * np.pi)
         a_circ = np.pi * Aircraft.h/2 * Aircraft.t_sk
+        arr_z_y_a[:,0] = [x_circ,0.,a_circ]
 
         x_spr = - Aircraft.h/2
         a_spr = Aircraft.h * Aircraft.t_sp
+        arr_z_y_a[:, 1] = [x_spr, 0., a_spr]
 
-        x_sk = - (Aircraft.h/2 + (Aircraft.C_a - Aircraft.h/2)/2 )
+        x_sk = - (Aircraft.h/4 + Aircraft.C_a/2)
+        a_sk = np.sqrt((Aircraft.h/2)**2 + (Aircraft.C_a - Aircraft.h/2)**2) * Aircraft.t_sk
+        arr_z_y_a[:, 2:4] = [x_spr, 0., a_spr]
+
         
         
     # #========================       
