@@ -6,28 +6,29 @@ Created on Mon Feb 17 15:16:23 2020
 """
 import math
 import numpy as np
-#=======================================================================================
+#=============================================================================
 "Class containing all Aircraft data"
 class Aircraft(object):
-    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
-        self.name = name
-        self.C_a = C_a          #"Chord length aileron[m]"
-        self.l_a = l_a          #"Span of the aileron[m]"
-        self.x_1 = x_1          #"x-location of hinge 1 [m]"
-        self.x_2 = x_2          #"x-location of hinge 2 [m]"
-        self.x_3 = x_3          #"x-location of hinge 3 [m]"
-        self.x_a = x_a          #"Distance between actuator 1 and 2 [cm]"
-        self.h = h              #"Aileron height[cm]"
-        self.t_sk = t_sk        #"Skin thickness [mm]"
-        self.t_sp = t_sp        #"Spar thickness [mm]"
-        self.t_st = t_st        #"Thickness of stiffener[mm]"
-        self.h_st = h_st        #"Height of stiffener[cm]"
-        self.w_st = w_st        #"Width of stiffener[cm]"
-        self.n_st = n_st        #"Number of stiffeners [-]"
-        self.d_1 = d_1          #"Vertical displacement hinge 1[cm]"
-        self.d_3 = d_3          #"Vertical displacement hinge 3[cm]"
-        self.theta = theta      #"Maximum upward deflection[deg]"
-        self.P = P              #"Load in actuator 2[kN]"
+    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
+                            t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
+        self.name   = name
+        self.C_a    = C_a       #"Chord length aileron[m]"
+        self.l_a    = l_a       #"Span of the aileron[m]"
+        self.x_1    = x_1       #"x-location of hinge 1 [m]"
+        self.x_2    = x_2       #"x-location of hinge 2 [m]"
+        self.x_3    = x_3       #"x-location of hinge 3 [m]"
+        self.x_a    = x_a       #"Distance between actuator 1 and 2 [cm]"
+        self.h      = h         #"Aileron height[cm]"
+        self.t_sk   = t_sk      #"Skin thickness [mm]"
+        self.t_sp   = t_sp      #"Spar thickness [mm]"
+        self.t_st   = t_st      #"Thickness of stiffener[mm]"
+        self.h_st   = h_st      #"Height of stiffener[cm]"
+        self.w_st   = w_st      #"Width of stiffener[cm]"
+        self.n_st   = n_st      #"Number of stiffeners [-]"
+        self.d_1    = d_1       #"Vertical displacement hinge 1[cm]"
+        self.d_3    = d_3       #"Vertical displacement hinge 3[cm]"
+        self.theta  = theta     #"Maximum upward deflection[deg]"
+        self.P      = P         #"Load in actuator 2[kN]"
 
     def description(self):
         prop = vars(self)
@@ -40,7 +41,6 @@ class Aircraft(object):
 
     "Cross sectional properties for bending"
     "Requirement: Make it suitable for a box and an aileron cross section"
-    
     
     """A class that computes:
         
@@ -93,8 +93,11 @@ class Aircraft(object):
     
     
     def booms(self):
-        self.boom_area = (self.w_st/100) * (self.t_st/1000) + ((self.h_st - self.t_st/1000) * self.t_st)
-        aileron_circumference = ((2 * math.pi * (self.h / 2)) /2) + 2 * math.sqrt((self.h /2)**2 + (self.C_a - (self.h / 2))**2)
+        self.boom_area = ((self.w_st/100) * (self.t_st/1000) 
+                            + ((self.h_st - self.t_st/1000) * self.t_st))
+        aileron_circumference = (((2 * math.pi * (self.h / 2)) /2) 
+                                + 2 * math.sqrt((self.h /2)**2 
+                                + (self.C_a - (self.h / 2))**2))
         self.boom_spacing = aileron_circumference / self.n_st
         
         
@@ -183,20 +186,20 @@ def integrate_x(x_list):
     solution.append(value)
   return solution
 
-""" How to use: """
-grid = aero_data()
-int_1 = integrate_z(grid)
-int_2 = integrate_x(int_1)
-int_3 = integrate_x(int_2)
-int_4 = integrate_x(int_3)
-int_5 = integrate_x(int_4)
+# """ How to use: """
+# grid = aero_data()
+# int_1 = integrate_z(grid)
+# int_2 = integrate_x(int_1)
+# int_3 = integrate_x(int_2)
+# int_4 = integrate_x(int_3)
+# int_5 = integrate_x(int_4)
 
-x=np.linspace(0,1.611,41)
-plt.axis([1.611,0,0,2*10**9])
-plt.xlabel('x-axis')
-plt.ylabel('z-axis')
-plt.plot(x,int_5)
-plt.show()
+# x=np.linspace(0,1.611,41)
+# plt.axis([1.611,0,0,2*10**9])
+# plt.xlabel('x-axis')
+# plt.ylabel('z-axis')
+# plt.plot(x,int_5)
+# plt.show()
 
 
 #=======================================================================================
