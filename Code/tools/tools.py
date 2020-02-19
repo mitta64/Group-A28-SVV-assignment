@@ -5,6 +5,10 @@ Created on Mon Feb 17 15:16:23 2020
 @author: Group A28 
 """
 #=======================================================================================
+"Importing all packages needed"
+import numpy as np
+
+#=======================================================================================
 "Class containing all Aircraft data"
 class Aircraft(object):
     def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
@@ -91,6 +95,7 @@ class CrossSectionalProperties(object):
     #Compute Boom Areas & Boom Locations
     #========================
     def booms(self):
+        pass
         
         
         
@@ -100,13 +105,23 @@ class CrossSectionalProperties(object):
     #Compute Centroid
     #========================
     def centroid(self):
-        
+        x_circ = 2 * f100.h / (3 * np.pi)
+        a_circ = np.pi * f100.h/2 * f100.t_sk
+
+        x_spr = - f100.h/2
+        a_spr = f100.h/2 * f100.t_sp
+
+        x_skn = - (f100.C_a - f100.h/2)
+        a_skn = np.sqrt( (f100.h / 2)**2 +(f100.C_a - f100.h/2)**2) * f100.t_sk
+
+
+        pass
         
     #========================       
     #Compute Second Moment of Inertia
     #========================
     def second_moi(self):
-    
+        pass
     
     
     
@@ -126,6 +141,7 @@ class CrossSectionalProperties(object):
         # Skin thickness
         # Skin Locations
     def shear_centre(self):
+        pass
         
         
     
@@ -133,6 +149,7 @@ class CrossSectionalProperties(object):
     #Compute Torsional Stiffness
     #========================
     def torsional_stiffness(self):
+        pass
         
     
     
