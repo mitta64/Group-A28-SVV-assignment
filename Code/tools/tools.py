@@ -105,7 +105,16 @@ class Aircraft(object):
     # #========================       
     # #Compute Centroid
     # #========================
-    # def centroid(self):
+    def centroid(self):
+        arr_z_y_a = np.zeros(shape = (3, 4 + Aircraft.n_st))
+
+        x_circ = - 4* (Aircraft.h/2)/)(3 * np.pi)
+        a_circ = np.pi * Aircraft.h/2 * Aircraft.t_sk
+
+        x_spr = - Aircraft.h/2
+        a_spr = Aircraft.h * Aircraft.t_sp
+
+        x_sk = - (Aircraft.h/2 + (Aircraft.C_a - Aircraft.h/2)/2 )
         
         
     # #========================       
