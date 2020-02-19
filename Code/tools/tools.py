@@ -4,6 +4,8 @@ Created on Mon Feb 17 15:16:23 2020
 
 @author: Group A28 
 """
+import math
+import numpy as np
 #=======================================================================================
 "Class containing all Aircraft data"
 class Aircraft(object):
@@ -33,15 +35,13 @@ class Aircraft(object):
         for i in prop.keys():
             print(str(i)+"="+'\t'+str(prop[i]))
 
-f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
-
-
 
 #=======================================================================================
-"Cross sectional properties for bending"
-"Requirement: Make it suitable for a box and an aileron cross section"
 
-class CrossSectionalProperties(object):
+    "Cross sectional properties for bending"
+    "Requirement: Make it suitable for a box and an aileron cross section"
+    
+    
     """A class that computes:
         
         - Boom Areas & Locations
@@ -90,49 +90,52 @@ class CrossSectionalProperties(object):
     #========================       
     #Compute Boom Areas & Boom Locations
     #========================
+    
+    
     def booms(self):
-        
-        
-        
-        
-    
-    #========================       
-    #Compute Centroid
-    #========================
-    def centroid(self):
-        
-        
-    #========================       
-    #Compute Second Moment of Inertia
-    #========================
-    def second_moi(self):
-    
-    
-    
-    
-    #I_xx
-    
-    
-    #I_yy
-    
-    
-    #I_xy
-    
-    #========================       
-    #Compute Shear Centre
-    #========================
-    # Requirements:
-        # Locations of the booms
-        # Skin thickness
-        # Skin Locations
-    def shear_centre(self):
+        self.boom_area = (self.w_st/100) * (self.t_st/1000) + ((self.h_st - self.t_st/1000) * self.t_st)
+        aileron_circumference = ((2 * math.pi * (self.h / 2)) /2) + 2 * math.sqrt((self.h /2)**2 + (self.C_a - (self.h / 2))**2)
+        self.boom_spacing = aileron_circumference / self.n_st
         
         
     
-    #========================       
-    #Compute Torsional Stiffness
-    #========================
-    def torsional_stiffness(self):
+    # #========================       
+    # #Compute Centroid
+    # #========================
+    # def centroid(self):
+        
+        
+    # #========================       
+    # #Compute Second Moment of Inertia
+    # #========================
+    # def second_moi(self):
+    
+    
+    
+    
+    # #I_xx
+    
+    
+    # #I_yy
+    
+    
+    # #I_xy
+    
+    # #========================       
+    # #Compute Shear Centre
+    # #========================
+    # # Requirements:
+    #     # Locations of the booms
+    #     # Skin thickness
+    #     # Skin Locations
+    # def shear_centre(self):
+        
+        
+    
+    # #========================       
+    # #Compute Torsional Stiffness
+    # #========================
+    # def torsional_stiffness(self):
         
     
     
@@ -142,7 +145,7 @@ class CrossSectionalProperties(object):
 
     
 
-
+f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
 
 #=======================================================================================
 "Integration functions for z and x direction"
