@@ -236,7 +236,10 @@ def spline_interpolator(Splinematrixx, node, inter_node):
 
     nodenumber=0
     for i in node:
-        if inter_node<= node[nodenumber] or inter_node>node[-2]: #check at which spline to interpolate
+        if inter_value<= i:  #inter_value>node[-2]: #check at which spline to interpolate
+            break
+        if inter_value >= node[-2]:
+            nodenumber = len(node)-1
             break
         else:
             nodenumber+=1
