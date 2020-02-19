@@ -6,6 +6,7 @@ Created on Mon Feb 17 15:16:23 2020
 """
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 #=============================================================================
 "Class containing all Aircraft data"
 class Aircraft(object):
@@ -106,19 +107,19 @@ class Aircraft(object):
     # #Compute Centroid
     # #========================
     def centroid(self):
-        arr_z_y_a = np.zeros(shape = (3, 4 + Aircraft.n_st))
+        arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
 
-        x_circ = - 4* (Aircraft.h/2)/)(3 * np.pi)
-        a_circ = np.pi * Aircraft.h/2 * Aircraft.t_sk
+        x_circ = - 4* (self.h/2)/(3 * np.pi)
+        a_circ = np.pi * self.h/2 * self.t_sk
         arr_z_y_a[:,0] = [x_circ,0.,a_circ]
 
-        x_spr = - Aircraft.h/2
-        a_spr = Aircraft.h * Aircraft.t_sp
+        x_spr = - self.h/2
+        a_spr = self.h * self.t_sp
         arr_z_y_a[:, 1] = [x_spr, 0., a_spr]
 
-        x_sk = - (Aircraft.h/4 + Aircraft.C_a/2)
-        a_sk = np.sqrt((Aircraft.h/2)**2 + (Aircraft.C_a - Aircraft.h/2)**2) * Aircraft.t_sk
-        arr_z_y_a[:, 2:4] = [x_spr, 0., a_spr]
+        x_sk = - (self.h/4 + self.C_a/2)
+        a_sk = np.sqrt((self.h/2)**2 + (self.C_a - self.h/2)**2) * self.t_sk
+        arr_z_y_a[:,2:4] = [[x_spr,x_spr], [0.,0.], [a_spr,a_spr]]
 
         
         
@@ -280,7 +281,6 @@ plot(func, thing, unit)
 
 #=======================================================================================
 "plotting functions"
-''''
 
 
 
