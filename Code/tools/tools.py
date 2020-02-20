@@ -7,39 +7,10 @@ Created on Mon Feb 17 15:16:23 2020
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-#=============================================================================
-"Class containing all Aircraft data"
-class Aircraft(object):
-    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
-                            t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
-        self.name   = name
-        self.C_a    = C_a       #"Chord length aileron[m]"
-        self.l_a    = l_a       #"Span of the aileron[m]"
-        self.x_1    = x_1       #"x-location of hinge 1 [m]"
-        self.x_2    = x_2       #"x-location of hinge 2 [m]"
-        self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
-        self.h      = round(h/100,8)      #"Aileron height[m]"
-        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
-        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
-        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
-        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
-        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
-        self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
-        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
-        self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
-    def description(self):
 
-        prop = vars(self)
-
-        for i in prop.keys():
-            print(str(i) + "=" + '\t' + str(prop[i]))
-
-    #=======================================================================================
+#=======================================================================================
     "get the necessary data"
-    from data import aero_data, grid, f100
+    from data import f100, aero_data, grid
 
 
 #=======================================================================================
@@ -433,6 +404,7 @@ def cubic_interpolator(coefficients, node, value, inter_value):
 
 
 #=====================================================================
+"plotting functions"
 def plot(data, thing_to_plot, unit):
   """ Plot deflection or twist data on a 2D graph
         thing_to_plot and unit should be written as strings, like 'deflection', 'm' '"""
@@ -463,10 +435,6 @@ unit = 'm'
 # plt.ylabel('z-axis')
 # plt.plot(x,int_5)
 # plt.show()
-
-
-#=======================================================================================
-"plotting functions"
 
 
 
