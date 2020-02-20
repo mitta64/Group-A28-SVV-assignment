@@ -386,6 +386,7 @@ def cubic_interpolator(coefficients, node, value, inter_value):
 
 
 #=====================================================================
+"plotting functions"
 def plot(data, thing_to_plot, unit):
   """ Plot deflection or twist data on a 2D graph
         thing_to_plot and unit should be written as strings, like 'deflection', 'm' '"""
@@ -416,10 +417,6 @@ unit = 'm'
 # plt.ylabel('z-axis')
 # plt.plot(x,int_5)
 # plt.show()
-
-
-#=======================================================================================
-"plotting functions"
 
 
 
