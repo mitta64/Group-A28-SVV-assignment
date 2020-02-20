@@ -37,22 +37,21 @@ for row in grid:
     a = def_integral(function,z1,z2,res)
     solution.append(a)
 
-print(solution)
 
-nodes = np.linspace(x1,x2,len(solution))
-matrix = spline_coefficient(nodes, solution)
-solution = def_integral(function,x1,x2,res)
+##nodes = np.linspace(x1,x2,len(solution))
+##matrix = spline_coefficient(nodes, solution)
+##solution = def_integral(function,x1,x2,res)
 
 
-coord_sys=(0,5,0,15)
-plt.imshow(test_grid, extent=coord_sys,interpolation='nearest', cmap=cm.gist_rainbow)
-plt.colorbar()
-plt.show()
-
-##x = np.linspace(0,5,len(solution))
-##plt.xlabel('x-axis')
-##plt.ylabel('z-axis')
-##plt.plot(x,solution)
+##coord_sys=(0,5,0,15)
+##plt.imshow(test_grid, extent=coord_sys,interpolation='nearest', cmap=cm.gist_rainbow)
+##plt.colorbar()
 ##plt.show()
+
+x = np.linspace(0,5,len(solution))
+plt.xlabel('x-axis')
+plt.ylabel('z-axis')
+plt.plot(x,solution)
+plt.show()
 
 
