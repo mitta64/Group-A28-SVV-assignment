@@ -14,28 +14,7 @@ import matplotlib.pyplot as plt
 
 
 #=======================================================================================
-class Aircraft(object):
-    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
-        self.name = name
-        self.C_a = C_a          #"Chord length aileron[m]"
-        self.l_a = l_a          #"Span of the aileron[m]"
-        self.x_1 = x_1          #"x-location of hinge 1 [m]"
-        self.x_2 = x_2          #"x-location of hinge 2 [m]"
-        self.x_3 = x_3          #"x-location of hinge 3 [m]"
-        self.x_a = x_a          #"Distance between actuator 1 and 2 [cm]"
-        self.h = h              #"Aileron height[cm]"
-        self.t_sk = t_sk        #"Skin thickness [mm]"
-        self.t_sp = t_sp        #"Spar thickness [mm]"
-        self.t_st = t_st        #"Thickness of stiffener[mm]"
-        self.h_st = h_st        #"Height of stiffener[cm]"
-        self.w_st = w_st        #"Width of stiffener[cm]"
-        self.n_st = n_st        #"Number of stiffeners [-]"
-        self.d_1 = d_1          #"Vertical displacement hinge 1[cm]"
-        self.d_3 = d_3          #"Vertical displacement hinge 3[cm]"
-        self.theta = theta      #"Maximum upward deflection[deg]"
-        self.P = P              #"Load in actuator 2[kN]"
 
-        
     "Cross sectional properties for bending"
     "Requirement: Make it suitable for a box and an aileron cross section"
     
@@ -139,10 +118,10 @@ class Aircraft(object):
         # Add column of boom areas to the total array
         boom_area_column = np.full((11,1), self.boom_area)
         self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
-    #         "Final output of booms function is self.boom_loc_area"
-    #     # #========================
-    #     # #Compute Centroid
-    #     # #=====================
+            "Final output of booms function is self.boom_loc_area"
+    #=====================
+    #Compute Centroid
+    #=====================
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
 
@@ -166,9 +145,9 @@ class Aircraft(object):
         self.cent = np.round(np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[np.sum(arr_z_y_a[1,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])]]),5)
         
         
-    # #============f1============
-    # #Compute Second Moment of Inertia
-    # #========================
+    #========================
+    #Compute Second Moment of Inertia
+    #========================
     def second_moi(self):
     #I_zz
         steiner_boom_skin_zz = np.round(np.square(self.boom_skin_z_y_a[1,:]) * self.boom_skin_z_y_a[2,:], 7)
@@ -193,14 +172,31 @@ class Aircraft(object):
     #I_xy
         self.Iyz = 0.
     
-    # #========================       
-    # #Compute Shear Centre
-    # #========================
-    # # Requirements:
-    #     # Locations of the booms
-    #     # Skin thickness
-    #     # Skin Locations
-    # def shear_centre(self):
+    #========================       
+    #Compute Shear Centre
+    #========================
+    # Requirements:
+        # Locations of the booms
+        # Skin thickness
+        # Skin Locations
+    def shear_centre(self):
+        
+        # Radius of semi-cirle
+        h = self.h / 2
+        # Length of triangular section
+        L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        # Self.boom_loc_area becomes "a" for simplicity
+        a = self.boom_loc_area
+        
+        #Shear flows
+        qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1])
+        
+    #================================ 
+    #Compute Shear Flow At Any Point
+    #=================================
+    #def master_shear_flow(self):
         
         
     
