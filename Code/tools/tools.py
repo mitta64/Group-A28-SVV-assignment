@@ -118,15 +118,15 @@ import matplotlib.pyplot as plt
         # Add column of boom areas to the total array
         boom_area_column = np.full((11,1), self.boom_area)
         self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
-        "Final output of booms function is self.boom_loc_area"
-    # #========================       
-    # #Compute Centroid
-    # #========================
+    #         "Final output of booms function is self.boom_loc_area"
+    #     # #========================
+    #     # #Compute Centroid
+    #     # #=====================
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
 
 
-        x_circ = - 4* (self.h/2)/(3 * np.pi)
+        x_circ = - (self.h/2- self.h/np.pi)
         a_circ = np.pi * self.h/2 * self.t_sk
         arr_z_y_a[:,0] = [x_circ,0.,a_circ]
 
@@ -135,32 +135,42 @@ import matplotlib.pyplot as plt
         arr_z_y_a[:, 1] = [x_spr, 0., a_spr]
 
         x_sk = - (self.h/4 + self.C_a/2)
+        y_sk = self.h/4
         a_sk = np.sqrt((self.h/2)**2 + (self.C_a - self.h/2)**2) * self.t_sk
-        arr_z_y_a[:,2:4] = [[x_sk,x_sk], [0.,0.], [a_sk,a_sk]]
+        arr_z_y_a[:,2:4] = [[x_sk,x_sk], [y_sk,-y_sk], [a_sk,a_sk]]
 
-        self.tst = arr_z_y_a
-        
+        arr_z_y_a[:,4:] = np.transpose(self.boom_loc_area)
+        self.boom_skin_z_y_a = arr_z_y_a
 
-        #arr_z_y_a[;,4:] =
-
-        self.cent = np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[0]])
+        self.cent = np.round(np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[np.sum(arr_z_y_a[1,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])]]),5)
         
         
     # #============f1============
     # #Compute Second Moment of Inertia
     # #========================
-    # def second_moi(self):
-    
-    
-    
-    
-    # #I_xx
-    
-    
-    # #I_yy
-    
-    
-    # #I_xy
+    def second_moi(self):
+    #I_zz
+        steiner_boom_skin_zz = np.round(np.square(self.boom_skin_z_y_a[1,:]) * self.boom_skin_z_y_a[2,:], 7)
+        Izz_circ = np.pi * ((self.h/2)**4 - (self.h/2- self.t_sk)**4)/ 8
+        Izz_spar = self.h**3 * self.t_sp/12
+        l_sk     = np.sqrt((self.C_a-self.h/2)**2 + (self.h/2)**2)
+        Izz_sk   = (l_sk)**3 * self.t_sk * ((self.h/2)/(l_sk))**2 /12
+
+        self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk
+
+    #I_yy
+        steiner_boom_skin_yy = np.round(np.square(self.boom_skin_z_y_a[0,:]) * self.boom_skin_z_y_a[2,:], 7)
+
+        Iyy_circ = (np.pi/8 - 8/(np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
+        Iyy_spar = 0
+        l_sk     = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
+        Iyy_sk   = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk))** 2 / 12
+
+        self.Izz = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk
+
+
+    #I_xy
+        self.Iyz = 0.
     
     # #========================       
     # #Compute Shear Centre
