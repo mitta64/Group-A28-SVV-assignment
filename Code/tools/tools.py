@@ -7,39 +7,10 @@ Created on Mon Feb 17 15:16:23 2020
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-#=============================================================================
-"Class containing all Aircraft data"
-class Aircraft(object):
-    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
-                            t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
-        self.name   = name
-        self.C_a    = C_a       #"Chord length aileron[m]"
-        self.l_a    = l_a       #"Span of the aileron[m]"
-        self.x_1    = x_1       #"x-location of hinge 1 [m]"
-        self.x_2    = x_2       #"x-location of hinge 2 [m]"
-        self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
-        self.h      = round(h/100,8)      #"Aileron height[m]"
-        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
-        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
-        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
-        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
-        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
-        self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
-        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
-        self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
-    def description(self):
 
-        prop = vars(self)
-
-        for i in prop.keys():
-            print(str(i) + "=" + '\t' + str(prop[i]))
-
-    #=======================================================================================
+#=======================================================================================
     "get the necessary data"
-    from data import aero_data, grid, f100
+    from data import f100, aero_data, grid
 
 
 #=======================================================================================
@@ -237,29 +208,47 @@ def macaulay(x, x_n, pwr=1):
     return 0
 
 def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
-  """Constructs the matrix A such that Ax=b for the statically indeterminate
-  problem. Where:
-  A is the matrix
-  x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
-  b = ()
-  Inputs:
-  I = ('z':I_zz, 'y':I_yy)""" 
-  Ky = (1/(E*I['y']))
-  Kz = (1/(E*I['z']))
-  A = np.array([[1, 1,  1,  0,  0,  0,                              np.sin(alpha), 0,0,0,0,0],#Row 1
-                [0, 0,  0,  1,  1,  1,                              np.cos(alpha), 0,0,0,0,0],#Row 2
-                [-h/2.,   -h/2.,  -h/2.,  -h/2. * (np.sin(alpha)+np.cos(alpha)),0, 0,0,0,0,0],#Row 3
-                [    0,       0,      0, x_1, x_2, x_3,  np.cos(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 4
-                [ -x_1,    -x_2,   -x_3,   0,   0,   0, -np.sin(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 5
-                [],#Row 6
-                [],#Row 7
-                [],#Row 8
-                [],#Row 9
-                [],#Row 10
-                [],#Row 11
-                [] #Row 12
-    ])
+    """Constructs the matrix A such that Ax=b for the statically indeterminate
+    problem. Where:
+    A is the matrix
+    x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
+    b = ()
+    Inputs:
+    Section = ('z':I_zz, 'y':I_yy, 'G':G, 'J':J, 'E':E, 'z_sc':z_sc)""" 
+    Ky    = (1/(I['E']*I['y']))
+    Kz    = (1/(I['E']*I['z']))
+    L     = 1/(I['G']*I['J'])
+    Ksi_1 = x_2-x_a/2
+    Ksi_2 = x_2+x_a/2
+    Eta   = h/2 + z_sc
+    mc = macaulay
 
+    def Alpha(a,b):
+    #helper function
+    return        -(Kz*np.sin(alpha)/6 *mc(a,b,3) +
+            L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+
+    def Gamma(a,b):
+    #helper function
+    return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
+
+    #       x =#(               R_1y,              R_2y,              R_3y,                                 R_1z,                                 R_2z,                                 R_3z,                                  R_i,                   C_1,           C_2,                   C_3,           C_4,                                 C_5)
+    A = np.array([[                1,                 1,                 1,                                    0,                                    0,                                    0,                        np.sin(alpha),                     0,             0,                     0,             0,                                   0],#Row 1
+                  [                0,                 0,                 0,                                    1,                                    1,                                    1,                        np.cos(alpha),                     0,             0,                     0,             0,                                   0],#Row 2
+                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0, -h/2 * (np.sin(alpha)+np.cos(alpha)),                     0,             0,                     0              0,                                   0],#Row 3
+                  [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,            np.cos(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 4
+                  [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,           -np.sin(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 5
+                  [                0,   Gamma(x_1, x_2),   Gamma(x_1, x_3),                                    0,                                    0,                                    0,                    Alpha(x_1, Ksi_1),                   x_1,             1,                     0,             0,                                   1],#Row 6
+                  [                0,                 0,                 0,                                    0,                 Ky/6*mc(x_1, x_2, 3),                 Ky/6*mc(x_1, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_1, Ksi_1,3),                     0,             0,                   x_1,             1,                                   0],#Row 7
+                  [  Gamma(x_2, x_1),                 0,   Gamma(x_2, x_3),                                    0,                                    0,                                    0,                    Alpha(x_2, Ksi_1),                   x_2,             1,                     0,             0,                                   1],#Row 8
+                  [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
+                  [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             3,                     0,             0,                                   1],#Row 10
+                  [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
+                  [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
+        ])
+    b = {}
+    
 
 #=======================================================================================
 "Integration functions for z and x direction"
@@ -425,6 +414,7 @@ def cubic_interpolator(coefficients, node, value, inter_value):
 
 
 #=====================================================================
+"plotting functions"
 def plot(data, thing_to_plot, unit):
   """ Plot deflection or twist data on a 2D graph
         thing_to_plot and unit should be written as strings, like 'deflection', 'm' '"""
@@ -455,10 +445,6 @@ unit = 'm'
 # plt.ylabel('z-axis')
 # plt.plot(x,int_5)
 # plt.show()
-
-
-#=======================================================================================
-"plotting functions"
 
 
 
