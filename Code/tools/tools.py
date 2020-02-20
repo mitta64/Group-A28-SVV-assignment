@@ -268,18 +268,18 @@ def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
 
     def Alpha(a,b):
     #helper function
-    return        -(Kz*np.sin(alpha)/6 *mc(a,b,3) +
+        return   (-(Kz*np.sin(alpha)/6 *mc(a,b,3) +
             L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
-            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b)))
 
     def Gamma(a,b):
     #helper function
-    return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
+        return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
 
     #       x =#(               R_1y,              R_2y,              R_3y,                                 R_1z,                                 R_2z,                                 R_3z,                                  R_i,                   C_1,           C_2,                   C_3,           C_4,                                 C_5)
     A = np.array([[                1,                 1,                 1,                                    0,                                    0,                                    0,                        np.sin(alpha),                     0,             0,                     0,             0,                                   0],#Row 1
                   [                0,                 0,                 0,                                    1,                                    1,                                    1,                        np.cos(alpha),                     0,             0,                     0,             0,                                   0],#Row 2
-                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0, -h/2 * (np.sin(alpha)+np.cos(alpha)),                     0,             0,                     0              0,                                   0],#Row 3
+                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0, -h/2 * (np.sin(alpha)+np.cos(alpha)),                     0,             0,                     0,             0,                                   0],#Row 3
                   [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,            np.cos(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 4
                   [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,           -np.sin(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 5
                   [                0,   Gamma(x_1, x_2),   Gamma(x_1, x_3),                                    0,                                    0,                                    0,                    Alpha(x_1, Ksi_1),                   x_1,             1,                     0,             0,                                   1],#Row 6
