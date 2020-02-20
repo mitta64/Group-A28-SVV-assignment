@@ -21,11 +21,11 @@ def _coord(length, theta, theta_next):
 la = 1.611
 Ca = 0.505
 zcoord = [] #chordwise - 81 elements
-for i in np.arange(81):
+for i in np.arange(1,81):
     zcoord.append(_coord(Ca, _theta(i, 41), _theta(i+1,41)) )
     
 xcoord = [] #spanwise - 41 elements
-for j in np.arange(41):
+for j in np.arange(1,41):
     xcoord.append(_coord(la, _theta(j, 41), _theta(j+1,41)) )
         
 
