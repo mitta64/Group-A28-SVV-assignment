@@ -144,7 +144,7 @@ class Aircraft(object):
         # Add column of boom areas to the total array
         boom_area_column = np.full((11,1), self.boom_area)
         self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
-            "Final output of booms function is self.boom_loc_area"
+            #"Final output of booms function is self.boom_loc_area"
     #=====================
     #Compute Centroid
     #=====================
