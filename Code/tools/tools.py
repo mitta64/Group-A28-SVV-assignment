@@ -18,24 +18,28 @@ class Aircraft(object):
         self.x_1    = x_1       #"x-location of hinge 1 [m]"
         self.x_2    = x_2       #"x-location of hinge 2 [m]"
         self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = x_a       #"Distance between actuator 1 and 2 [cm]"
-        self.h      = h         #"Aileron height[cm]"
-        self.t_sk   = t_sk      #"Skin thickness [mm]"
-        self.t_sp   = t_sp      #"Spar thickness [mm]"
-        self.t_st   = t_st      #"Thickness of stiffener[mm]"
-        self.h_st   = h_st      #"Height of stiffener[cm]"
-        self.w_st   = w_st      #"Width of stiffener[cm]"
+        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
+        self.h      = round(h/100,8)      #"Aileron height[m]"
+        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
+        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
+        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
+        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
+        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
         self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = d_1       #"Vertical displacement hinge 1[cm]"
-        self.d_3    = d_3       #"Vertical displacement hinge 3[cm]"
+        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
+        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
         self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = P         #"Load in actuator 2[kN]"
-
+        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
     def description(self):
+
         prop = vars(self)
 
         for i in prop.keys():
-            print(str(i)+"="+'\t'+str(prop[i]))
+            print(str(i) + "=" + '\t' + str(prop[i]))
+
+    #=======================================================================================
+    "get the necessary data"
+    from data import aero_data, grid, f100
 
 
 #=======================================================================================
@@ -94,20 +98,62 @@ class Aircraft(object):
     
     
     def booms(self):
-        self.boom_area = ((self.w_st/100) * (self.t_st/1000) 
-                            + ((self.h_st - self.t_st/1000) * self.t_st))
-        aileron_circumference = (((2 * math.pi * (self.h / 2)) /2) 
+        
+        # Compute stringer area
+        self.boom_area = ((self.w_st) * (self.t_st)                             
+                            + ((self.h_st - self.t_st) * self.t_st))
+        
+        # Compute aileron circumference
+        aileron_circumference = (((2 * np.pi * (self.h / 2)) /2)                
                                 + 2 * math.sqrt((self.h /2)**2 
                                 + (self.C_a - (self.h / 2))**2))
-        self.boom_spacing = aileron_circumference / self.n_st
         
+        # Compute boom spacing
+        self.boom_spacing = aileron_circumference / self.n_st   
+
+        # Compute orientation stringer in semi-circle & triangular section      
+        angle_arc = (self.boom_spacing / (self.h / 2))                          
+        angle_triangle = (math.atan((self.h /2) / (self.C_a - (self.h /2))))                                                
         
-    
+        # Start array with Col 1 z coordinate & Col 2 y coordinate 
+        # Add stringers, starting at LE and going clockwise
+        self.boom_loc_area = np.array([0, 0])
+        
+        # Add stringer in upper arc section
+        boom_arc_up_loc = (np.array([                                               
+                -((self.h / 2) - (np.cos(angle_arc) * (self.h / 2) )),          
+                np.sin(angle_arc) * (self.h / 2)]))
+        
+        self.boom_loc_area = np.stack((self.boom_loc_area, boom_arc_up_loc))
+        
+        # Add stringers in upper triangular section
+        for i in np.linspace(3.5, 0.5 ,4):
+            boom_tri_up = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
+                                    i * self.boom_spacing * np.sin(angle_triangle)])
+            self.boom_loc_area = np.append(self.boom_loc_area, [boom_tri_up], axis = 0)
+            
+        # Add stringers in lower triangular section
+        for i in np.linspace(0.5, 3.5, 4):
+            boom_tri_down = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
+                                    -i * self.boom_spacing * np.sin(angle_triangle)])
+            self.boom_loc_area = np.append(self.boom_loc_area, [boom_tri_down], axis = 0)
+        
+        # Add stringer in lower arc section
+        boom_arc_down_loc = (np.array([                                               
+                -((self.h / 2) - (np.cos(angle_arc) * (self.h / 2) )),          
+                - np.sin(angle_arc) * (self.h / 2)]))
+        self.boom_loc_area = np.append(self.boom_loc_area, [boom_arc_down_loc], axis = 0)
+        
+        # Add column of boom areas to the total array
+        boom_area_column = np.full((11,1), self.boom_area)
+        self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
+        "Final output of booms function is self.boom_loc_area"
     # #========================       
     # #Compute Centroid
     # #========================
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
+
 
         x_circ = - 4* (self.h/2)/(3 * np.pi)
         a_circ = np.pi * self.h/2 * self.t_sk
@@ -119,11 +165,17 @@ class Aircraft(object):
 
         x_sk = - (self.h/4 + self.C_a/2)
         a_sk = np.sqrt((self.h/2)**2 + (self.C_a - self.h/2)**2) * self.t_sk
-        arr_z_y_a[:,2:4] = [[x_spr,x_spr], [0.,0.], [a_spr,a_spr]]
+        arr_z_y_a[:,2:4] = [[x_sk,x_sk], [0.,0.], [a_sk,a_sk]]
 
+        self.tst = arr_z_y_a
+        
+
+        #arr_z_y_a[;,4:] =
+
+        self.cent = np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[0]])
         
         
-    # #========================       
+    # #============f1============
     # #Compute Second Moment of Inertia
     # #========================
     # def second_moi(self):
@@ -154,19 +206,17 @@ class Aircraft(object):
     # #Compute Torsional Stiffness
     # #========================
     # def torsional_stiffness(self):
-        
-    
-    
+
+f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389,
+                    1.245, 30, 49.2)
+
+
     
     
     
 
     
 
-f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
-
-#=======================================================================================
-"Integration functions for z and x direction"
 
 def macaulay(x, x_n, pwr=1):
   "returns result of the step function for [x-x_n]^pwr"
@@ -176,6 +226,33 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
+def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
+  """Constructs the matrix A such that Ax=b for the statically indeterminate
+  problem. Where:
+  A is the matrix
+  x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
+  b = ()
+  Inputs:
+  I = ('z':I_zz, 'y':I_yy)""" 
+  Ky = (1/(E*I['y']))
+  Kz = (1/(E*I['z']))
+  A = np.array([[1, 1,  1,  0,  0,  0,                              np.sin(alpha), 0,0,0,0,0],#Row 1
+                [0, 0,  0,  1,  1,  1,                              np.cos(alpha), 0,0,0,0,0],#Row 2
+                [-h/2.,   -h/2.,  -h/2.,  -h/2. * (np.sin(alpha)+np.cos(alpha)),0, 0,0,0,0,0],#Row 3
+                [    0,       0,      0, x_1, x_2, x_3,  np.cos(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 4
+                [ -x_1,    -x_2,   -x_3,   0,   0,   0, -np.sin(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 5
+                [],#Row 6
+                [],#Row 7
+                [],#Row 8
+                [],#Row 9
+                [],#Row 10
+                [],#Row 11
+                [] #Row 12
+    ])
+
+
+#=======================================================================================
+"Integration functions for z and x direction"
 
 def integrate_z(grid):
   """used to integrate the .dat aero data over the x-axis"""
@@ -186,31 +263,52 @@ def integrate_z(grid):
   solution = []
   for column in range(len(grid[0])):
     A = 0
-    for row in range(1,len(grid)-1):
+    for row in range(len(grid)):
       A += grid[row][column]/v_res*Ca
-      
-      A += grid[0][column]/v_res*Ca*0.5
-      A += grid[v_res-1][column]/v_res*Ca*0.5
+
     solution.append(A)
   return solution
 
 def integrate_x(x_list):
   """used to integrate the .dat aero data over the x-axis"""
   Ca = 0.505
+  span = 1.611
   h_res = 41
   v_res = 81
   
   solution = []
   prev = 0
   value = 0
-  for element in range(len(x_list)-1,-1,-1):
-    value += (prev+x_list[element])/2
+  for element in range(len(x_list)):
+    value += (prev+x_list[element])/2*(span/h_res)
     prev=x_list[element]
     
     solution.append(value)
   return solution
 
+def def_integral(f,x1,x2,res=10000):
+    interval = (x2-x1)/res
+    solution = 0
+    a=f(x1)
+    for e in range(res):
+        b=f(x1+(e+1)*interval)
+        solution += (a+b)*interval/2
+        a=b
+    return solution
 
+def indef_integral(f,x1,x2,res=10000):
+    interval = (x2-x1)/res
+    solution = []
+    value = 0
+    a = f(x1)
+    for e in range(res):
+        b = f(x1+(e+1)*interval)
+        value += (a+b)*interval/2
+        solution.append(value)
+        a = b
+    return solution
+
+#=======================================================================================
 "Interpolators 2 different ways: linear of cubic for cubic interpolation 2 boundary conditions are required"
 def spline_coefficient(node,value):
     # IMPORTANT: needs a grid in chronological order (from small to big)
@@ -331,7 +429,7 @@ def plot(data, thing_to_plot, unit):
 func = np.sin(np.linspace(0,10,100))
 thing = 'deflection'
 unit = 'm'
-plot(func, thing, unit)
+#plot(func, thing, unit)
 
 # """ How to use: """
 # grid = aero_data()

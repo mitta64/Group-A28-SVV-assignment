@@ -40,12 +40,7 @@ class Aircraft(object):
         self.theta = theta      #"Maximum upward deflection[deg]"
         self.P = P              #"Load in actuator 2[kN]"
 
-
-
-f100 = Aircraft(name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P)
-
-
-def aero_data():
+def retrieve_aero_data():
   file="aerodynamicloadf100.dat"
   csv=open(file, "r").read()
   table = csv.split("\n")
@@ -89,3 +84,8 @@ def transpose(A):
         for j in range(len(A[0])):
             T[j][i]=A[i][j]
     return T
+
+
+f100 = Aircraft(name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P)
+aero_data = retrieve_aero_data()
+grid = transpose(aero_data)
