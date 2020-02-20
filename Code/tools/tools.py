@@ -9,8 +9,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #=======================================================================================
-    "get the necessary data"
-    from data import f100, aero_data, grid
+"Class containing all Aircraft data"
+class Aircraft(object):
+    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
+                            t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
+        self.name   = name
+        self.C_a    = C_a       #"Chord length aileron[m]"
+        self.l_a    = l_a       #"Span of the aileron[m]"
+        self.x_1    = x_1       #"x-location of hinge 1 [m]"
+        self.x_2    = x_2       #"x-location of hinge 2 [m]"
+        self.x_3    = x_3       #"x-location of hinge 3 [m]"
+        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
+        self.h      = round(h/100,8)      #"Aileron height[m]"
+        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
+        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
+        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
+        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
+        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
+        self.n_st   = n_st      #"Number of stiffeners [-]"
+        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
+        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
+        self.theta  = theta     #"Maximum upward deflection[deg]"
+        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
+    def description(self):
+
+        prop = vars(self)
+
+        for i in prop.keys():
+            print(str(i) + "=" + '\t' + str(prop[i]))
 
 
 #=======================================================================================
@@ -118,15 +144,15 @@ import matplotlib.pyplot as plt
         # Add column of boom areas to the total array
         boom_area_column = np.full((11,1), self.boom_area)
         self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
-        "Final output of booms function is self.boom_loc_area"
-    # #========================       
-    # #Compute Centroid
-    # #========================
+            #"Final output of booms function is self.boom_loc_area"
+    #=====================
+    #Compute Centroid
+    #=====================
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
 
 
-        x_circ = - 4* (self.h/2)/(3 * np.pi)
+        x_circ = - (self.h/2- self.h/np.pi)
         a_circ = np.pi * self.h/2 * self.t_sk
         arr_z_y_a[:,0] = [x_circ,0.,a_circ]
 
@@ -135,41 +161,68 @@ import matplotlib.pyplot as plt
         arr_z_y_a[:, 1] = [x_spr, 0., a_spr]
 
         x_sk = - (self.h/4 + self.C_a/2)
+        y_sk = self.h/4
         a_sk = np.sqrt((self.h/2)**2 + (self.C_a - self.h/2)**2) * self.t_sk
-        arr_z_y_a[:,2:4] = [[x_sk,x_sk], [0.,0.], [a_sk,a_sk]]
+        arr_z_y_a[:,2:4] = [[x_sk,x_sk], [y_sk,-y_sk], [a_sk,a_sk]]
 
-        self.tst = arr_z_y_a
-        
+        arr_z_y_a[:,4:] = np.transpose(self.boom_loc_area)
+        self.boom_skin_z_y_a = arr_z_y_a
 
-        #arr_z_y_a[;,4:] =
-
-        self.cent = np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[0]])
+        self.cent = np.round(np.array([[np.sum(arr_z_y_a[0,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])],[np.sum(arr_z_y_a[1,:]*arr_z_y_a[2,:])/np.sum([arr_z_y_a[2,:]])]]),5)
         
         
-    # #============f1============
-    # #Compute Second Moment of Inertia
-    # #========================
-    # def second_moi(self):
+    #========================
+    #Compute Second Moment of Inertia
+    #========================
+    def second_moi(self):
+    #I_zz
+        steiner_boom_skin_zz = np.round(np.square(self.boom_skin_z_y_a[1,:]) * self.boom_skin_z_y_a[2,:], 7)
+        Izz_circ = np.pi * ((self.h/2)**4 - (self.h/2- self.t_sk)**4)/ 8
+        Izz_spar = self.h**3 * self.t_sp/12
+        l_sk     = np.sqrt((self.C_a-self.h/2)**2 + (self.h/2)**2)
+        Izz_sk   = (l_sk)**3 * self.t_sk * ((self.h/2)/(l_sk))**2 /12
+
+        self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk
+
+    #I_yy
+        steiner_boom_skin_yy = np.round(np.square(self.boom_skin_z_y_a[0,:]) * self.boom_skin_z_y_a[2,:], 7)
+
+        Iyy_circ = (np.pi/8 - 8/(np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
+        Iyy_spar = 0
+        l_sk     = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
+        Iyy_sk   = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk))** 2 / 12
+
+        self.Izz = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk
+
+
+    #I_xy
+        self.Iyz = 0.
     
-    
-    
-    
-    # #I_xx
-    
-    
-    # #I_yy
-    
-    
-    # #I_xy
-    
-    # #========================       
-    # #Compute Shear Centre
-    # #========================
-    # # Requirements:
-    #     # Locations of the booms
-    #     # Skin thickness
-    #     # Skin Locations
-    # def shear_centre(self):
+    #========================       
+    #Compute Shear Centre
+    #========================
+    # Requirements:
+        # Locations of the booms
+        # Skin thickness
+        # Skin Locations
+    def shear_centre(self):
+        
+        # Radius of semi-cirle
+        h = self.h / 2
+        # Length of triangular section
+        L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        # Self.boom_loc_area becomes "a" for simplicity
+        a = self.boom_loc_area
+        
+        #Shear flows
+        qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1])
+        
+    #================================ 
+    #Compute Shear Flow At Any Point
+    #=================================
+    #def master_shear_flow(self):
         
         
     
@@ -198,29 +251,47 @@ def macaulay(x, x_n, pwr=1):
     return 0
 
 def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
-  """Constructs the matrix A such that Ax=b for the statically indeterminate
-  problem. Where:
-  A is the matrix
-  x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
-  b = ()
-  Inputs:
-  I = ('z':I_zz, 'y':I_yy)""" 
-  Ky = (1/(E*I['y']))
-  Kz = (1/(E*I['z']))
-  A = np.array([[1, 1,  1,  0,  0,  0,                              np.sin(alpha), 0,0,0,0,0],#Row 1
-                [0, 0,  0,  1,  1,  1,                              np.cos(alpha), 0,0,0,0,0],#Row 2
-                [-h/2.,   -h/2.,  -h/2.,  -h/2. * (np.sin(alpha)+np.cos(alpha)),0, 0,0,0,0,0],#Row 3
-                [    0,       0,      0, x_1, x_2, x_3,  np.cos(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 4
-                [ -x_1,    -x_2,   -x_3,   0,   0,   0, -np.sin(alpha)*(x_2-x_a/2),0,0,0,0,0],#Row 5
-                [],#Row 6
-                [],#Row 7
-                [],#Row 8
-                [],#Row 9
-                [],#Row 10
-                [],#Row 11
-                [] #Row 12
-    ])
+    """Constructs the matrix A such that Ax=b for the statically indeterminate
+    problem. Where:
+    A is the matrix
+    x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
+    b = ()
+    Inputs:
+    Section = ('z':I_zz, 'y':I_yy, 'G':G, 'J':J, 'E':E, 'z_sc':z_sc)""" 
+    Ky    = (1/(I['E']*I['y']))
+    Kz    = (1/(I['E']*I['z']))
+    L     = 1/(I['G']*I['J'])
+    Ksi_1 = x_2-x_a/2
+    Ksi_2 = x_2+x_a/2
+    Eta   = h/2 + z_sc
+    mc = macaulay
 
+    def Alpha(a,b):
+    #helper function
+    return        -(Kz*np.sin(alpha)/6 *mc(a,b,3) +
+            L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+
+    def Gamma(a,b):
+    #helper function
+    return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
+
+    #       x =#(               R_1y,              R_2y,              R_3y,                                 R_1z,                                 R_2z,                                 R_3z,                                  R_i,                   C_1,           C_2,                   C_3,           C_4,                                 C_5)
+    A = np.array([[                1,                 1,                 1,                                    0,                                    0,                                    0,                        np.sin(alpha),                     0,             0,                     0,             0,                                   0],#Row 1
+                  [                0,                 0,                 0,                                    1,                                    1,                                    1,                        np.cos(alpha),                     0,             0,                     0,             0,                                   0],#Row 2
+                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0, -h/2 * (np.sin(alpha)+np.cos(alpha)),                     0,             0,                     0              0,                                   0],#Row 3
+                  [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,            np.cos(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 4
+                  [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,           -np.sin(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 5
+                  [                0,   Gamma(x_1, x_2),   Gamma(x_1, x_3),                                    0,                                    0,                                    0,                    Alpha(x_1, Ksi_1),                   x_1,             1,                     0,             0,                                   1],#Row 6
+                  [                0,                 0,                 0,                                    0,                 Ky/6*mc(x_1, x_2, 3),                 Ky/6*mc(x_1, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_1, Ksi_1,3),                     0,             0,                   x_1,             1,                                   0],#Row 7
+                  [  Gamma(x_2, x_1),                 0,   Gamma(x_2, x_3),                                    0,                                    0,                                    0,                    Alpha(x_2, Ksi_1),                   x_2,             1,                     0,             0,                                   1],#Row 8
+                  [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
+                  [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             3,                     0,             0,                                   1],#Row 10
+                  [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
+                  [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
+        ])
+    b = {}
+    
 
 #=======================================================================================
 "Integration functions for z and x direction"

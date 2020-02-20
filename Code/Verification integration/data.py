@@ -1,5 +1,4 @@
 # Retrieve all data
-from tools import Aircraft
 
 name = 'f100'
 C_a = 0.505  # m
@@ -20,6 +19,26 @@ d_3 = 0.01245  # m
 theta = 0
 P = 49.2*1000  # N
 
+class Aircraft(object):
+    def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
+        self.name = name
+        self.C_a = C_a          #"Chord length aileron[m]"
+        self.l_a = l_a          #"Span of the aileron[m]"
+        self.x_1 = x_1          #"x-location of hinge 1 [m]"
+        self.x_2 = x_2          #"x-location of hinge 2 [m]"
+        self.x_3 = x_3          #"x-location of hinge 3 [m]"
+        self.x_a = x_a          #"Distance between actuator 1 and 2 [cm]"
+        self.h = h              #"Aileron height[cm]"
+        self.t_sk = t_sk        #"Skin thickness [mm]"
+        self.t_sp = t_sp        #"Spar thickness [mm]"
+        self.t_st = t_st        #"Thickness of stiffener[mm]"
+        self.h_st = h_st        #"Height of stiffener[cm]"
+        self.w_st = w_st        #"Width of stiffener[cm]"
+        self.n_st = n_st        #"Number of stiffeners [-]"
+        self.d_1 = d_1          #"Vertical displacement hinge 1[cm]"
+        self.d_3 = d_3          #"Vertical displacement hinge 3[cm]"
+        self.theta = theta      #"Maximum upward deflection[deg]"
+        self.P = P              #"Load in actuator 2[kN]"
 
 def retrieve_aero_data():
   file="aerodynamicloadf100.dat"
