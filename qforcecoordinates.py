@@ -5,7 +5,7 @@ Created on Mon Feb 17 13:04:56 2020
 @author: changkyupark
 """
 import numpy as np
-import tools
+import tools.py
 
 def _theta(i, N):
     # i: i-th node
