@@ -14,23 +14,24 @@ class Aircraft(object):
     def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
                             t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
         self.name   = name
-        self.C_a    = C_a       #"Chord length aileron[m]"
-        self.l_a    = l_a       #"Span of the aileron[m]"
-        self.x_1    = x_1       #"x-location of hinge 1 [m]"
-        self.x_2    = x_2       #"x-location of hinge 2 [m]"
-        self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
-        self.h      = round(h/100,8)      #"Aileron height[m]"
-        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
-        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
-        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
-        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
-        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
-        self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
-        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
-        self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
+        self.C_a    = C_a                   #"Chord length aileron[m]"
+        self.l_a    = l_a                   #"Span of the aileron[m]"
+        self.x_1    = x_1                   #"x-location of hinge 1 [m]"
+        self.x_2    = x_2                   #"x-location of hinge 2 [m]"
+        self.x_3    = x_3                   #"x-location of hinge 3 [m]"
+        self.x_a    = round(x_a/100,8)      #"Distance between actuator 1 and 2 [m]"
+        self.h      = round(h/100,8)        #"Aileron height[m]"
+        self.t_sk   = round(t_sk/1000,8)    #"Skin thickness [m]"
+        self.t_sp   = round(t_sp/1000,8)    #"Spar thickness [m]"
+        self.t_st   = round(t_st/1000,8)    #"Thickness of stiffener[m]"
+        self.h_st   = round(h_st/100,8)     #"Height of stiffener[m]"
+        self.w_st   = round(w_st/100,8)     #"Width of stiffener[m]"
+        self.n_st   = n_st                  #"Number of stiffeners [-]"
+        self.d_1    = round(d_1/100,8)      #"Vertical displacement hinge 1[m]"
+        self.d_3    = round(d_3/100,8)      #"Vertical displacement hinge 3[m]"
+        self.theta  = theta                 #"Maximum upward deflection[deg]"
+        self.P      = round(P*1000,8)       #"Load in actuator 2[N]"
+        self.G      = 28 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa]"
     def description(self):
 
         prop = vars(self)
@@ -211,14 +212,51 @@ class Aircraft(object):
         h = self.h / 2
         # Length of triangular section
         L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        # Angle at TE of ONE triangular section
+        alpha = math.atan((h) / (self.C_a - (h)))
         # Self.boom_loc_area becomes "a" for simplicity
         a = self.boom_loc_area
         
-        #Shear flows
+        # Shear flows [N/m]
+        # Shear flow in bottom triangular section
         qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
                 self.boom_area * a[6,1] + self.boom_area * a[7,1], +
                 self.boom_area * a[8,1] + self.boom_area * a[9,1])
+        # Shear flow in bottom part spar
+        qb_4 = (-1 / self.Izz) * (self.t_sp * h**2 / 2 )
+        # Shear flow in semi-circle
+        qb_5 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
+                - self.t_sp * h**2 / 2 + self.boom_area * a[1,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
+        # Shear flow in top part spar
+        qb_1 = qb_4
+        # Shear flow in upper triangular section
+        qb_2 = (-1 / self.Izz) * (self.boom_area * a[1,1] + 
+                self.boom_area * a[2,1] + self.boom_area * a[3,1] +
+                self.boom_area * a[4,1] + self.boom_area * a[5,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
+        # Redundant shear flow in left cell
+        q0_1 = ((-1) * ((qb_5 * np.pi * h)/(self.G * self.t_sk) - 
+                (qb_1 * h)/(self.G * self.t_sp) -
+                (qb_4 * h)/(self.G * self.t_sp))) /((np.pi * h)/(self.G * self.t_sk)
+                                                    + (2 * h)/(self.G * self.t_sp))
+        q0_2 = ((-1) * ((qb_1 * h)/(self.G * self.t_sp) +
+                (qb_2 * L_sk)/(self.G * self.t_sk) + 
+                (qb_3 * L_sk)/(self.G * self.t_sk) +
+                (qb_4 * h)/(self.G * self.t_sp))) /((2 * h)/(self.G * self.t_sp)
+                                                    + (2 * L_sk)/(self.G * self.t_sk))
         
+        # Shear Centre z and y location (due to symmetry y = 0)
+        self.shear_centre_z = (-1) * ((qb_5 * np.pi * h**2) +
+                                      (qb_2 * L_sk * np.cos(alpha) * h) +
+                                      (qb_3 * L_sk * cos(alpha) * h) +
+                                      (q0_1 * np.pi * h**2) +
+                                      (q0_2 * 2 * h * (self.C_a - h)))
+        self.shear_centre_y = 0                                          
     #================================ 
     #Compute Shear Flow At Any Point
     #=================================
