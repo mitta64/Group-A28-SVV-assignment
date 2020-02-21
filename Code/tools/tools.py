@@ -51,6 +51,7 @@ class Aircraft(object):
         - Centroid
         - Second Moment of Inertias I_xx, I_yy, I_xy
         - Shear Centre
+        - Shear flow
         - Torsional Stiffness
         
         #==========================    
@@ -76,6 +77,12 @@ class Aircraft(object):
         Inputs: - Boom areas 
                 - Boom locations 
                 - Skin thickness
+        #==========================    
+        Output: Shear flow at any given location
+        Inputs: - The angle in the semi-circle
+                - The y-coordinate in the spar
+                - Fraction of the length of the the triangular straight line
+                    from top spar to TE or from TE to bottom spar
         #==========================    
         Output: Torsional Stiffness
         Inputs: - Shear flow distributions
@@ -220,14 +227,14 @@ class Aircraft(object):
         # Shear flows [N/m]
         # Shear flow in bottom triangular section
         qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
-                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
                 self.boom_area * a[8,1] + self.boom_area * a[9,1])
         # Shear flow in bottom part spar
         qb_4 = (-1 / self.Izz) * (self.t_sp * h**2 / 2 )
         # Shear flow in semi-circle
         qb_5 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
                 - self.t_sp * h**2 / 2 + self.boom_area * a[1,1] +
-                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
                 self.boom_area * a[8,1] + self.boom_area * a[9,1] +
                 self.boom_area * a[10,1])
         # Shear flow in top part spar
@@ -236,7 +243,7 @@ class Aircraft(object):
         qb_2 = (-1 / self.Izz) * (self.boom_area * a[1,1] + 
                 self.boom_area * a[2,1] + self.boom_area * a[3,1] +
                 self.boom_area * a[4,1] + self.boom_area * a[5,1] +
-                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
                 self.boom_area * a[8,1] + self.boom_area * a[9,1] +
                 self.boom_area * a[10,1])
         # Redundant shear flow in left cell
@@ -253,22 +260,98 @@ class Aircraft(object):
         # Shear Centre z and y location (due to symmetry y = 0)
         self.shear_centre_z = (-1) * ((qb_5 * np.pi * h**2) +
                                       (qb_2 * L_sk * np.cos(alpha) * h) +
-                                      (qb_3 * L_sk * cos(alpha) * h) +
+                                      (qb_3 * L_sk * np.cos(alpha) * h) +
                                       (q0_1 * np.pi * h**2) +
-                                      (q0_2 * 2 * h * (self.C_a - h)))
+                                      (q0_2 * 2 * h * (self.C_a - h))) - h
+                                
         self.shear_centre_y = 0                                          
     #================================ 
     #Compute Shear Flow At Any Point
     #=================================
-    #def master_shear_flow(self):
+    # Input: Angle theta [rad] from -pi/2 to pi/2
+    # Input: y-coordinate [m] from -self.h/2 to self.h/2
+    # Input: Fraction of length skin L_sk    
+    def master_shear_flow(self, theta=0, y=-0.05, frac=0):
         
+        # Radius of semi-cirle
+        h = self.h / 2
+        # Length of triangular section
+        L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        # Self.boom_loc_area becomes "a" for simplicity
+        a = self.boom_loc_area
         
+        # Input: Angle theta [rad] from -pi/2 to pi/2
+        # Semi-cirlce shear flow
+        self.qb_5 = (-1 / self.Izz) * (-self.t_sk * h**2 * np.cos(theta) -self.t_sk * h * (L_sk/2) +
+                - self.t_sp * h**2 / 2 + self.boom_area * a[1,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
+        
+        # Lower part spar shear flow
+        # Input: y-coordinate [m] from -self.h/2 to 0
+        self.qb_4 = (-1 / self.Izz) * (self.t_sp * y**2 / 2 ) 
+        
+        # Upper part spar shear flow
+        # Input: y-coordinate [m] from 0 to self.h/2
+        self.qb_1 = self.qb_4
+        
+        # Lower part triangle shear flow
+        # Input: Fraction of length skin L_sk
+        self.qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (1/(2 * L_sk)) * (frac * L_sk)**2 +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1])
+        
+        # Upper part triangle shear flow
+        # Input: Fraction of length skin L_sk
+        self.qb_2 = (-1 / self.Izz) * (self.t_sk * h * ((frac*L_sk) - ((frac * L_sk)**2) / (2 * L_sk))
+                - self.t_sk * h * (L_sk / 2) + self.boom_area * a[1,1] + 
+                self.boom_area * a[2,1] + self.boom_area * a[3,1] +
+                self.boom_area * a[4,1] + self.boom_area * a[5,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
     
-    # #========================       
-    # #Compute Torsional Stiffness
-    # #========================
-    # def torsional_stiffness(self):
-
+    #========================       
+    #Compute Torsional Stiffness
+    #========================
+    # Apply unit torque -> T = 1
+    # Set up torque equation and dtheta/dz equations for cell I and II
+    # Solve for q0_2, q0_1 and dtheta_dz
+    # Obtain torsional stiffness J from T/(G * dtheta/dz)
+    def torsional_stiffness(self):
+        
+        # Radius of semi-cirle
+        h = self.h / 2
+        # Length of triangular section
+        L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        
+        # Compute q0_2, q0_1, dtheta_dz and self.J
+        # A = X * q0_2
+        A = (2 * (self.C_a - h)) / (h * self.G * self.t_sk)
+        + (4 * (self.C_a - h)) / (np.pi * h * self.G * self.t_sp)
+        + (2) / (self.G * self.t_sp)
+        
+        X = (2 * np.pi * h * L_sk) / (self.G * self.t_sk)
+        + (2 * np.pi * h**2) / (self.G * self.t_sp) 
+        + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
+        + ((2 * h * (self.C_a - h))**2) / ((h)**2 * self.G * self.t_sk)
+        + (8 * (h * (self.C_a - h))**2) / (np.pi * (h)**2 * self.G * self.t_sp)
+        + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
+        
+        q0_2 = A / X 
+        
+        # From Torque equation obtained        
+        q0_1 = (1 - (2 * h * (self.C_a - h)) * q0_2) / (np.pi * (h)**2) 
+        
+        # Cell I dtheta_dz used
+        dtheta_dz = (1 / (np.pi * h)) * ((q0_1 * np.pi) / (self.G * self.t_sk)
+                                         + (2 * (q0_1 - q0_2)) / (self.G * self.t_sp))
+        # Torsional stiffness J
+        self.J = 1 / (self.G * dtheta_dz)
+        
+        
+#=======================================================================================
 f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389,
                     1.245, 30, 49.2)
 
