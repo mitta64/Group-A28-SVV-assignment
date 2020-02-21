@@ -250,12 +250,13 @@ class Aircraft(object):
                 (qb_4 * h)/(self.G * self.t_sp))) /((2 * h)/(self.G * self.t_sp)
                                                     + (2 * L_sk)/(self.G * self.t_sk))
         
-        # Shear Centre z and y location
+        # Shear Centre z and y location (due to symmetry y = 0)
         self.shear_centre_z = (-1) * ((qb_5 * np.pi * h**2) +
                                       (qb_2 * L_sk * np.cos(alpha) * h) +
                                       (qb_3 * L_sk * cos(alpha) * h) +
                                       (q0_1 * np.pi * h**2) +
-                                      (q0_2 * 2 * h * (self.C_a - h)))                                          
+                                      (q0_2 * 2 * h * (self.C_a - h)))
+        self.shear_centre_y = 0                                          
     #================================ 
     #Compute Shear Flow At Any Point
     #=================================
