@@ -624,14 +624,14 @@ def cubic_coefficients(node,value):
     coefficients = np.linalg.solve(Mmatrix,dmatrix)
     return coefficients
 
-def cubic_interpolator(coefficients, node, value, inter_value):
+def cubic_interpolator(coefficients, node, value, inter_node):
     # This function actually interpolates (1 point)
     # input Splinematrix from previous function, all nodes (1d array), intervalue (the point to be interpolated)
     nodenumber=0
     for i in node:
-        if inter_value<= i:  #inter_value>node[-2]: #check at which spline to interpolate
+        if inter_node<= i:  #inter_value>node[-2]: #check at which spline to interpolate
             break
-        if inter_value >= node[-2]:
+        if inter_node >= node[-2]:
             nodenumber = len(node)-1
             break
         else:
@@ -647,7 +647,7 @@ def cubic_interpolator(coefficients, node, value, inter_value):
     b =  coefficients[nodenumber]/(6*hi)
     c = coefficients[nodenumber-1]*hi*hi/6
     d = coefficients[nodenumber]*hi*hi/6
-    si = a*(xi-inter_value)**3+b*(inter_value-x_i)**3+(y_i-c)*(xi-inter_value)/hi+(yi-d)*(inter_value-x_i)/hi
+    si = a*(xi-inter_node)**3+b*(inter_node-x_i)**3+(y_i-c)*(xi-inter_node)/hi+(yi-d)*(inter_node-x_i)/hi
     return si
 
 
