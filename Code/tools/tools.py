@@ -406,7 +406,18 @@ def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
                   [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
         ])
-    b = {}
+    b = np.array([[],#Row 1
+                  [],#Row 2
+                  [],#Row 3
+                  [],#Row 4
+                  [],#Row 5
+                  [],#Row 6
+                  [],#Row 7
+                  [],#Row 8
+                  [],#Row 9
+                  [],#Row 10
+                  [],#Row 11
+                  []]) #Row 12
     
 
 #=======================================================================================
@@ -438,12 +449,18 @@ def indef_integral(f,x1,x2,res=10000):
 """ This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
 Then, it calculates the indeffinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
 res is the resolution. Higher value = more accurate, but longer runtime """
-def integral_z(n,x_final=1.611,res=1000):
+def integral_z(n,x_final=1.611,z_sc=0,res=1000):
     #--------------------- input data --------------------------------
     """ boundaries of the integration """
     x1 ,x2 = 0, 1.611
     z1, z2 = 0, 0.505
 
+    for row in range(len(grid)):
+        for element in range(len(row)):
+            z = element*0.505/80
+            grid[row][element] = grid[row][element]*(z-z_sc)
+        
+    
     #------------------ main program ---------------------------
     start_time = time.time() # to calculate runtime of the program
 
