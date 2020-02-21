@@ -8,8 +8,8 @@ from integrator import def_integral, indef_integral
 from interpolator import spline_coefficient, spline_interpolator
 
 
-""" This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a=0.505.
-Than, it calculates the indeffinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
+""" This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
+Then, it calculates the indeffinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
 res is the resolution. Higher value = more accurate, but longer runtime """
 def integral_n(n,res=1000):
     #--------------------- input data --------------------------------
