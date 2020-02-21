@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from data import aero_data, grid, transpose
+import copy
 
 #=======================================================================================
 "Class containing all Aircraft data"
@@ -451,14 +452,15 @@ Then, it calculates the indeffinite integral along dx. The n'th integral (if n>=
 res is the resolution. Higher value = more accurate, but longer runtime """
 def integral_z(n,x_final=1.611,z_sc=0,res=1000):
     #--------------------- input data --------------------------------
+    newgrid = copy.deepcopy(grid)
     """ boundaries of the integration """
     x1 ,x2 = 0, 1.611
     z1, z2 = 0, 0.505
-
-    for row in range(len(grid)):
-        for element in range(len(row)):
-            z = element*0.505/80
-            grid[row][element] = grid[row][element]*(z-z_sc)
+    if z_sc != 0:
+        for row in range(len(newgrid)):
+            for element in range(len(newgrid[0])):
+                z = element*0.505/80
+                newgrid[row][element] = newgrid[row][element]*(z-z_sc)
         
     
     #------------------ main program ---------------------------
@@ -473,9 +475,9 @@ def integral_z(n,x_final=1.611,z_sc=0,res=1000):
 
 
     """ the function 'spline_coefficient(nodes,row)' converts an array of x-values (=nodes) and an array of y-values (=column of the aero_data) into a matrix. This matrix is necessary to use the function 'spline_interpolator'. (see interpolation file for explenation) """
-    nodes = np.linspace(z1,z2,len(grid[0]))
+    nodes = np.linspace(z1,z2,len(newgrid[0]))
     solution = []
-    for row in grid:
+    for row in newgrid:
         matrix = spline_coefficient(nodes, row)
         """ This calculates the definite integral from z1 to z2 of 'function' """
         a = def_integral(function,z1,z2,res)
@@ -505,6 +507,7 @@ def integral_z(n,x_final=1.611,z_sc=0,res=1000):
 
     end_time = time.time()
     run_time = end_time - start_time   # print run_time to see the time it took the program to compute
+       
     return solution
 
 
