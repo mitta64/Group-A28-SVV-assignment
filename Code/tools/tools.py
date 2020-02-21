@@ -438,12 +438,18 @@ def indef_integral(f,x1,x2,res=10000):
 """ This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
 Then, it calculates the indeffinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
 res is the resolution. Higher value = more accurate, but longer runtime """
-def integral_z(n,x_final=1.611,res=1000):
+def integral_z(n,x_final=1.611,z_sc=0,res=1000):
     #--------------------- input data --------------------------------
     """ boundaries of the integration """
     x1 ,x2 = 0, 1.611
     z1, z2 = 0, 0.505
 
+    for row in range(len(grid)):
+        for element in range(len(row)):
+            z = element*0.505/80
+            grid[row][element] = grid[row][element]*(z-z_sc)
+        
+    
     #------------------ main program ---------------------------
     start_time = time.time() # to calculate runtime of the program
 
