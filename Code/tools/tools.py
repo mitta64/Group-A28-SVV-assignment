@@ -367,7 +367,7 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
-def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
+def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I, E):
     """Constructs the matrix A such that Ax=b for the statically indeterminate
     problem. Where:
     A is the matrix
@@ -380,8 +380,10 @@ def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
     L     = 1/(I['G']*I['J'])
     Ksi_1 = x_2-x_a/2
     Ksi_2 = x_2+x_a/2
+    z_sc = I['z_sc'] # a negative value
     Eta   = h/2 + z_sc
     mc = macaulay
+    alpha = alpha/180*np.pi # convert from degrees to radians
 
     def Alpha(a,b):
     #helper function
@@ -407,17 +409,17 @@ def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
                   [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
         ])
-    b = np.array([[],#Row 1
-                  [],#Row 2
-                  [],#Row 3
-                  [],#Row 4
-                  [],#Row 5
+    b = np.array([[P*np.sin(alpha)+integral_z(2)],#Row 1
+                  [-P*np.cos(alpha)],#Row 2
+                  [-P*np.sin(alpha)*h/2-P*np.cos(alpha)*h/2-integral_x(3)],#Row 3
+                  [P*np.cos(alpha)*Ksi_2],#Row 4
+                  [-P*np.sin(alpha)*Ksi_2-integral_z(3)],#Row 5
                   [],#Row 6
-                  [],#Row 7
+                  [Ky*np.cos(alpha)/6*mc(x_1,Ksi_2,3)*P-d1*np.sin(alpha)],#Row 7
                   [],#Row 8
-                  [],#Row 9
+                  [Ky*np.cos(alpha)/6*mc(x_2,Ksi_2,3)*P],#Row 9
                   [],#Row 10
-                  [],#Row 11
+                  [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],#Row 11
                   []]) #Row 12
     
 
