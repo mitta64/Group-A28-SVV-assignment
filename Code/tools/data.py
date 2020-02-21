@@ -1,5 +1,4 @@
 # Retrieve all data
-from tools import Aircraft
 
 name = 'f100'
 C_a = 0.505  # m
@@ -67,6 +66,5 @@ def transpose(A):
     return T
 
 
-f100 = Aircraft(name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P)
 aero_data = retrieve_aero_data()
 grid = transpose(aero_data)

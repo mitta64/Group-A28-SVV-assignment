@@ -7,6 +7,8 @@ Created on Mon Feb 17 15:16:23 2020
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+from data import aero_data, grid, transpose
 
 #=======================================================================================
 "Class containing all Aircraft data"
@@ -356,13 +358,6 @@ f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1
                     1.245, 30, 49.2)
 
 
-    
-    
-    
-
-    
-
-
 def macaulay(x, x_n, pwr=1):
   "returns result of the step function for [x-x_n]^pwr"
   result = (x-x_n)
@@ -545,7 +540,7 @@ def spline_coefficient(node,value):
         a = value[i]
         b=(value[i+1]-value[i])/(node[i+1]-node[i])
         c = node[i]
-        print(a,b,c)
+        # print(a,b,c)
         Splinematrix.append([a,b,c])
     return np.array(Splinematrix)
 
@@ -556,9 +551,9 @@ def spline_interpolator(Splinematrixx, node, inter_node):
 
     nodenumber=0
     for i in node:
-        if inter_value<= i:  #inter_value>node[-2]: #check at which spline to interpolate
+        if inter_node<= i:  #inter_value>node[-2]: #check at which spline to interpolate
             break
-        if inter_value >= node[-2]:
+        if inter_node >= node[-2]:
             nodenumber = len(node)-1
             break
         else:
@@ -578,7 +573,7 @@ def cubic_coefficients(node,value):
     #output Array containing Splinematrix
     boundary1 = (value[1]-value[0])/(node[1]-node[0])
     boundary2 = (value[-1]-value[-2])/(node[-1]-node[-2])
-    print(boundary1,boundary2)
+    # print(boundary1,boundary2)
     Mmatrix = []
     dmatrix = []
     Lambda0 = 1
