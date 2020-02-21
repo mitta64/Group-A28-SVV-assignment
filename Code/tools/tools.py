@@ -406,7 +406,18 @@ def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
                   [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
         ])
-    b = {}
+    b = np.array([[],#Row 1
+                  [],#Row 2
+                  [],#Row 3
+                  [],#Row 4
+                  [],#Row 5
+                  [],#Row 6
+                  [],#Row 7
+                  [],#Row 8
+                  [],#Row 9
+                  [],#Row 10
+                  [],#Row 11
+                  []]) #Row 12
     
 
 #=======================================================================================
