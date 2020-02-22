@@ -455,7 +455,7 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
                   [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],      #Row 11
                   [Delta(Ksi_1, Ksi_2)]])                                       #Row 12
     
-    return np.matmul(np.transpose(A), b)
+    return np.linalg.solve(np.transpose(A), b)
 
 #=======================================================================================
 "Integration functions for z and x direction"
