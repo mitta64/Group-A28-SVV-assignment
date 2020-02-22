@@ -14,6 +14,8 @@ import copy
 #=======================================================================================
 "Class containing all Aircraft data"
 class Aircraft(object):
+    
+        
     def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
                             t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
         self.name   = name
@@ -34,17 +36,19 @@ class Aircraft(object):
         self.d_3    = round(d_3/100,8)      #"Vertical displacement hinge 3[m]"
         self.theta  = theta                 #"Maximum upward deflection[deg]"
         self.P      = round(P*1000,8)       #"Load in actuator 2[N]"
+        # Material properties
         self.G      = 28 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa]"
+        self.E      = 71.1 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa]"
     def description(self):
 
         prop = vars(self)
 
         for i in prop.keys():
             print(str(i) + "=" + '\t' + str(prop[i]))
-
-
+    
+    
 #=======================================================================================
-
+    
     "Cross sectional properties for bending"
     "Requirement: Make it suitable for a box and an aileron cross section"
     
@@ -100,11 +104,11 @@ class Aircraft(object):
                 - Boom locations
         #==========================  
     """
+  
+    
     #========================       
     #Compute Boom Areas & Boom Locations
     #========================
-    
-    
     def booms(self):
         
         # Compute stringer area
@@ -212,10 +216,6 @@ class Aircraft(object):
     #========================       
     #Compute Shear Centre
     #========================
-    # Requirements:
-        # Locations of the booms
-        # Skin thickness
-        # Skin Locations
     def shear_centre(self):
         
         # Radius of semi-cirle
@@ -352,12 +352,25 @@ class Aircraft(object):
                                          + (2 * (q0_1 - q0_2)) / (self.G * self.t_sp))
         # Torsional stiffness J
         self.J = 1 / (self.G * dtheta_dz)
+    
         
+            
         
 #=======================================================================================
 f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389,
-                    1.245, 30, 49.2)
+                1.245, 30, 49.2)
 
+#====================================================
+# Assign all required properties to one term
+# Replace 'f100' when analysing a different aircraft
+#====================================================
+f100.booms()
+f100.centroid()
+f100.second_moi()
+f100.shear_centre()
+f100.torsional_stiffness()
+I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+#=======================================================================================
 
 def macaulay(x, x_n, pwr=1):
   "returns result of the step function for [x-x_n]^pwr"
@@ -367,20 +380,20 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
-def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I, E):
+def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
     """Constructs the matrix A such that Ax=b for the statically indeterminate
     problem. Where:
     A is the matrix
     x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
     b = ()
     Inputs:
-    Section = ('z':I_zz, 'y':I_yy, 'G':G, 'J':J, 'E':E, 'z_sc':z_sc)""" 
-    Ky    = (1/(I['E']*I['y']))
-    Kz    = (1/(I['E']*I['z']))
-    L     = 1/(I['G']*I['J'])
+    I = (I_zz, I_yy, G, J, E, z_sc)""" 
+    Ky    = (1/(I[4]*I[1]))
+    Kz    = (1/(I[4]*I[0]))
+    L     = 1/(I[2]*I[3])
     Ksi_1 = x_2-x_a/2
     Ksi_2 = x_2+x_a/2
-    z_sc = I['z_sc'] # a negative value
+    z_sc = I[5] # a negative value
     Eta   = h/2 + z_sc
     mc = macaulay
     alpha = alpha/180*np.pi # convert from degrees to radians
@@ -390,10 +403,30 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I, E):
         return   (-(Kz*np.sin(alpha)/6 *mc(a,b,3) +
             L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
             L*Eta*h/2 *np.cos(alpha)   *mc(a,b)))
-
+    
+    def Beta(a):
+    # Helper function; changing variable will be either x_1, x_2 or x_3
+        return (((np.sin(alpha) / 6) * mc(a, Ksi_2, 3) - 
+                L * Eta * z_sc * np.sin(alpha) * mc(a, Ksi_2) - 
+                L * Eta * (h/2) * np.cos(alpha) * mc(a, Ksi_2)) * P +
+                Kz * integral_z(5, a) +
+                L * Eta * integral_z(3, a, z_sc))
+                
     def Gamma(a,b):
     #helper function
         return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
+    
+    def Delta(a, b):
+    # Helper function to make this lengthy expression more readable
+         return (Ky * ((P * (np.cos(alpha))**2) / 6) * mc(a, b, 3) -
+                L * (h/2) * z_sc * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) +
+                L * (h/2)**2 * P * (np.cos(alpha))**2 * mc(a, b) +
+                Kz * ((P * (np.sin(alpha))**2) / 6) * mc(a, b, 3) +
+                L * (z_sc)**2 * P * (np.sin(alpha))**2 * mc(a, b) +
+                z_sc * L * (h/2) * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) -
+                np.cos(alpha) * L * (h/2) * integral_z(3, a, z_sc) -
+                np.sin(alpha) * z_sc * L * integral_z(3, a, z_sc) +
+                Kz * np.sin(alpha) * integral_z(5, a))
 
     #       x =#(               R_1y,              R_2y,              R_3y,                                 R_1z,                                 R_2z,                                 R_3z,                                  R_i,                   C_1,           C_2,                   C_3,           C_4,                                 C_5)
     A = np.array([[                1,                 1,                 1,                                    0,                                    0,                                    0,                        np.sin(alpha),                     0,             0,                     0,             0,                                   0],#Row 1
@@ -409,19 +442,20 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I, E):
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
                   [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
         ])
-    b = np.array([[P*np.sin(alpha)+integral_z(2)],#Row 1
-                  [-P*np.cos(alpha)],#Row 2
-                  [-P*np.sin(alpha)*h/2-P*np.cos(alpha)*h/2-integral_x(3)],#Row 3
-                  [P*np.cos(alpha)*Ksi_2],#Row 4
-                  [-P*np.sin(alpha)*Ksi_2-integral_z(3)],#Row 5
-                  [],#Row 6
-                  [Ky*np.cos(alpha)/6*mc(x_1,Ksi_2,3)*P-d1*np.sin(alpha)],#Row 7
-                  [],#Row 8
-                  [Ky*np.cos(alpha)/6*mc(x_2,Ksi_2,3)*P],#Row 9
-                  [],#Row 10
-                  [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],#Row 11
-                  []]) #Row 12
+    b = np.array([[P*np.sin(alpha)+integral_z(2)],                              #Row 1
+                  [-P*np.cos(alpha)],                                           #Row 2
+                  [-P*np.sin(alpha)*h/2-P*np.cos(alpha)*h/2-integral_x(3)],     #Row 3
+                  [P*np.cos(alpha)*Ksi_2],                                      #Row 4
+                  [-P*np.sin(alpha)*Ksi_2-integral_z(3)],                       #Row 5
+                  [Beta(x_1) + d1 * np.cos(alpha)],                             #Row 6
+                  [Ky*np.cos(alpha)/6*mc(x_1,Ksi_2,3)*P-d1*np.sin(alpha)],      #Row 7
+                  [Beta(x_2)],                                                  #Row 8
+                  [Ky*np.cos(alpha)/6*mc(x_2,Ksi_2,3)*P],                       #Row 9
+                  [Beta(x_3) + d3 * np.cos(alpha)],                             #Row 10
+                  [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],      #Row 11
+                  [Delta(Ksi_1, Ksi_2)]])                                       #Row 12
     
+    return np.matmul(np.transpose(A), b)
 
 #=======================================================================================
 "Integration functions for z and x direction"
@@ -450,7 +484,7 @@ def indef_integral(f,x1,x2,res=10000):
 
 
 """ This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
-Then, it calculates the indeffinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
+Then, it calculates the indefinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
 res is the resolution. Higher value = more accurate, but longer runtime """
 def integral_z(n,x_final=1.611,z_sc=0,res=1000):
     #--------------------- input data --------------------------------
