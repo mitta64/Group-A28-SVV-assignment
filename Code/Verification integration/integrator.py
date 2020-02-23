@@ -1,38 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def integrate_z(grid):
-  """used to integrate the .dat aero data over the x-axis"""
-  Ca = 0.505
-  h_res = 41
-  v_res = 81
-  
-  solution = []
-  for column in range(len(grid[0])):
-    A = 0
-    for row in range(len(grid)):
-      A += grid[row][column]/v_res*Ca
-
-    solution.append(A)
-  return solution
-
-def integrate_x(x_list):
-  """used to integrate the .dat aero data over the x-axis"""
-  Ca = 0.505
-  span = 1.611
-  h_res = 41
-  v_res = 81
-  
-  solution = []
-  prev = 0
-  value = 0
-  for element in range(len(x_list)):
-    value += (prev+x_list[element])/2*(span/h_res)
-    prev=x_list[element]
-    
-    solution.append(value)
-  return solution
-
 def def_integral(f,x1,x2,res=10000):
     interval = (x2-x1)/res
     solution = 0

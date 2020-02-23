@@ -7,40 +7,48 @@ Created on Mon Feb 17 15:16:23 2020
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+from data import aero_data, grid, transpose
+import copy
 
 #=======================================================================================
 "Class containing all Aircraft data"
 class Aircraft(object):
+    
+        
     def __init__(self,name,C_a,l_a,x_1,x_2,x_3,x_a,h,
                             t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P):
         self.name   = name
-        self.C_a    = C_a       #"Chord length aileron[m]"
-        self.l_a    = l_a       #"Span of the aileron[m]"
-        self.x_1    = x_1       #"x-location of hinge 1 [m]"
-        self.x_2    = x_2       #"x-location of hinge 2 [m]"
-        self.x_3    = x_3       #"x-location of hinge 3 [m]"
-        self.x_a    = round(x_a/100,8)       #"Distance between actuator 1 and 2 [m]"
-        self.h      = round(h/100,8)      #"Aileron height[m]"
-        self.t_sk   = round(t_sk/1000,8)     #"Skin thickness [m]"
-        self.t_sp   = round(t_sp/1000,8)      #"Spar thickness [m]"
-        self.t_st   = round(t_st/1000,8)      #"Thickness of stiffener[m]"
-        self.h_st   = round(h_st/100,8)      #"Height of stiffener[m]"
-        self.w_st   = round(w_st/100,8)      #"Width of stiffener[m]"
-        self.n_st   = n_st      #"Number of stiffeners [-]"
-        self.d_1    = round(d_1/100,8)       #"Vertical displacement hinge 1[m]"
-        self.d_3    = round(d_3/100,8)       #"Vertical displacement hinge 3[m]"
-        self.theta  = theta     #"Maximum upward deflection[deg]"
-        self.P      = round(P*1000,8)        #"Load in actuator 2[N]"
+        self.C_a    = C_a                   #"Chord length aileron[m]"
+        self.l_a    = l_a                   #"Span of the aileron[m]"
+        self.x_1    = x_1                   #"x-location of hinge 1 [m]"
+        self.x_2    = x_2                   #"x-location of hinge 2 [m]"
+        self.x_3    = x_3                   #"x-location of hinge 3 [m]"
+        self.x_a    = round(x_a/100,8)      #"Distance between actuator 1 and 2 [m]"
+        self.h      = round(h/100,8)        #"Aileron height[m]"
+        self.t_sk   = round(t_sk/1000,8)    #"Skin thickness [m]"
+        self.t_sp   = round(t_sp/1000,8)    #"Spar thickness [m]"
+        self.t_st   = round(t_st/1000,8)    #"Thickness of stiffener[m]"
+        self.h_st   = round(h_st/100,8)     #"Height of stiffener[m]"
+        self.w_st   = round(w_st/100,8)     #"Width of stiffener[m]"
+        self.n_st   = n_st                  #"Number of stiffeners [-]"
+        self.d_1    = round(d_1/100,8)      #"Vertical displacement hinge 1[m]"
+        self.d_3    = round(d_3/100,8)      #"Vertical displacement hinge 3[m]"
+        self.theta  = theta                 #"Maximum upward deflection[deg]"
+        self.P      = round(0*1000,8)       #"Load in actuator 2[N]"
+        # Material properties
+        self.G      = 27.1 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa] is 28"
+        self.E      = 72.9 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa] is 71.1"
     def description(self):
 
         prop = vars(self)
 
         for i in prop.keys():
             print(str(i) + "=" + '\t' + str(prop[i]))
-
-
+    
+    
 #=======================================================================================
-
+    
     "Cross sectional properties for bending"
     "Requirement: Make it suitable for a box and an aileron cross section"
     
@@ -50,6 +58,7 @@ class Aircraft(object):
         - Centroid
         - Second Moment of Inertias I_xx, I_yy, I_xy
         - Shear Centre
+        - Shear flow
         - Torsional Stiffness
         
         #==========================    
@@ -76,6 +85,12 @@ class Aircraft(object):
                 - Boom locations 
                 - Skin thickness
         #==========================    
+        Output: Shear flow at any given location
+        Inputs: - The angle in the semi-circle
+                - The y-coordinate in the spar
+                - Fraction of the length of the the triangular straight line
+                    from top spar to TE or from TE to bottom spar
+        #==========================    
         Output: Torsional Stiffness
         Inputs: - Shear flow distributions
         #==========================  
@@ -89,11 +104,11 @@ class Aircraft(object):
                 - Boom locations
         #==========================  
     """
+  
+    
     #========================       
     #Compute Boom Areas & Boom Locations
     #========================
-    
-    
     def booms(self):
         
         # Compute stringer area
@@ -201,11 +216,65 @@ class Aircraft(object):
     #========================       
     #Compute Shear Centre
     #========================
-    # Requirements:
-        # Locations of the booms
-        # Skin thickness
-        # Skin Locations
     def shear_centre(self):
+        
+        # Radius of semi-cirle
+        h = self.h / 2
+        # Length of triangular section
+        L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        # Angle at TE of ONE triangular section
+        alpha = math.atan((h) / (self.C_a - (h)))
+        # Self.boom_loc_area becomes "a" for simplicity
+        a = self.boom_loc_area
+        
+        # Shear flows [N/m]
+        # Shear flow in bottom triangular section
+        qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1])
+        # Shear flow in bottom part spar
+        qb_4 = (-1 / self.Izz) * (self.t_sp * h**2 / 2 )
+        # Shear flow in semi-circle
+        qb_5 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
+                - self.t_sp * h**2 / 2 + self.boom_area * a[1,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
+        # Shear flow in top part spar
+        qb_1 = qb_4
+        # Shear flow in upper triangular section
+        qb_2 = (-1 / self.Izz) * (self.boom_area * a[1,1] + 
+                self.boom_area * a[2,1] + self.boom_area * a[3,1] +
+                self.boom_area * a[4,1] + self.boom_area * a[5,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
+        # Redundant shear flow in left cell
+        q0_1 = ((-1) * ((qb_5 * np.pi * h)/(self.G * self.t_sk) - 
+                (qb_1 * h)/(self.G * self.t_sp) -
+                (qb_4 * h)/(self.G * self.t_sp))) /((np.pi * h)/(self.G * self.t_sk)
+                                                    + (2 * h)/(self.G * self.t_sp))
+        q0_2 = ((-1) * ((qb_1 * h)/(self.G * self.t_sp) +
+                (qb_2 * L_sk)/(self.G * self.t_sk) + 
+                (qb_3 * L_sk)/(self.G * self.t_sk) +
+                (qb_4 * h)/(self.G * self.t_sp))) /((2 * h)/(self.G * self.t_sp)
+                                                    + (2 * L_sk)/(self.G * self.t_sk))
+        
+        # Shear Centre z and y location (due to symmetry y = 0)
+        self.shear_centre_z = (-1) * ((qb_5 * np.pi * h**2) +
+                                      (qb_2 * L_sk * np.cos(alpha) * h) +
+                                      (qb_3 * L_sk * np.cos(alpha) * h) +
+                                      (q0_1 * np.pi * h**2) +
+                                      (q0_2 * 2 * h * (self.C_a - h))) - h
+                                
+        self.shear_centre_y = 0                                          
+    #================================ 
+    #Compute Shear Flow At Any Point
+    #=================================
+    # Input: Angle theta [rad] from -pi/2 to pi/2
+    # Input: y-coordinate [m] from -self.h/2 to self.h/2
+    # Input: Fraction of length skin L_sk    
+    def master_shear_flow(self, theta=0, y=-0.05, frac=0):
         
         # Radius of semi-cirle
         h = self.h / 2
@@ -214,33 +283,95 @@ class Aircraft(object):
         # Self.boom_loc_area becomes "a" for simplicity
         a = self.boom_loc_area
         
-        #Shear flows
-        qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) +
-                self.boom_area * a[6,1] + self.boom_area * a[7,1], +
+        # Input: Angle theta [rad] from -pi/2 to pi/2
+        # Semi-cirlce shear flow
+        self.qb_5 = (-1 / self.Izz) * (-self.t_sk * h**2 * np.cos(theta) -self.t_sk * h * (L_sk/2) +
+                - self.t_sp * h**2 / 2 + self.boom_area * a[1,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
+        
+        # Lower part spar shear flow
+        # Input: y-coordinate [m] from -self.h/2 to 0
+        self.qb_4 = (-1 / self.Izz) * (self.t_sp * y**2 / 2 ) 
+        
+        # Upper part spar shear flow
+        # Input: y-coordinate [m] from 0 to self.h/2
+        self.qb_1 = self.qb_4
+        
+        # Lower part triangle shear flow
+        # Input: Fraction of length skin L_sk
+        self.qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (1/(2 * L_sk)) * (frac * L_sk)**2 +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
                 self.boom_area * a[8,1] + self.boom_area * a[9,1])
         
-    #================================ 
-    #Compute Shear Flow At Any Point
-    #=================================
-    #def master_shear_flow(self):
-        
-        
+        # Upper part triangle shear flow
+        # Input: Fraction of length skin L_sk
+        self.qb_2 = (-1 / self.Izz) * (self.t_sk * h * ((frac*L_sk) - ((frac * L_sk)**2) / (2 * L_sk))
+                - self.t_sk * h * (L_sk / 2) + self.boom_area * a[1,1] + 
+                self.boom_area * a[2,1] + self.boom_area * a[3,1] +
+                self.boom_area * a[4,1] + self.boom_area * a[5,1] +
+                self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+                self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+                self.boom_area * a[10,1])
     
-    # #========================       
-    # #Compute Torsional Stiffness
-    # #========================
-    # def torsional_stiffness(self):
-
+    #========================       
+    #Compute Torsional Stiffness
+    #========================
+    # Apply unit torque -> T = 1
+    # Set up torque equation and dtheta/dz equations for cell I and II
+    # Solve for q0_2, q0_1 and dtheta_dz
+    # Obtain torsional stiffness J from T/(G * dtheta/dz)
+    def torsional_stiffness(self):
+        
+        # Radius of semi-cirle
+        h = self.h / 2
+        # Length of triangular section
+        L_sk = math.sqrt((self.C_a - h)**2 + h**2)
+        
+        # Compute q0_2, q0_1, dtheta_dz and self.J
+        # A = X * q0_2
+        A = (2 * (self.C_a - h)) / (h * self.G * self.t_sk)
+        + (4 * (self.C_a - h)) / (np.pi * h * self.G * self.t_sp)
+        + (2) / (self.G * self.t_sp)
+        
+        X = (2 * np.pi * h * L_sk) / (self.G * self.t_sk)
+        + (2 * np.pi * h**2) / (self.G * self.t_sp) 
+        + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
+        + ((2 * h * (self.C_a - h))**2) / ((h)**2 * self.G * self.t_sk)
+        + (8 * (h * (self.C_a - h))**2) / (np.pi * (h)**2 * self.G * self.t_sp)
+        + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
+        
+        q0_2 = A / X 
+        
+        # From Torque equation obtained        
+        q0_1 = (1 - (2 * h * (self.C_a - h)) * q0_2) / (np.pi * (h)**2) 
+        
+        # Cell I dtheta_dz used
+        dtheta_dz = (1 / (np.pi * h)) * ((q0_1 * np.pi) / (self.G * self.t_sk)
+                                         + (2 * (q0_1 - q0_2)) / (self.G * self.t_sp))
+        # Torsional stiffness J
+        self.J = 1 / (self.G * dtheta_dz)
+    
+        
+            
+        
+#=======================================================================================
 f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389,
-                    1.245, 30, 49.2)
+                1.245, 30, 49.2)
 
-
-    
-    
-    
-
-    
-
+#====================================================
+# Assign all required properties to one term
+# Replace 'f100' when analysing a different aircraft
+#====================================================
+f100.booms()
+f100.centroid()
+f100.second_moi()
+f100.shear_centre()
+f100.torsional_stiffness()
+#I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 0.00017531714118864135, f100.E, -0.08553893540215983] # testing true data
+#=======================================================================================
 
 def macaulay(x, x_n, pwr=1):
   "returns result of the step function for [x-x_n]^pwr"
@@ -250,83 +381,96 @@ def macaulay(x, x_n, pwr=1):
   else:
     return 0
 
-def matrix(alpha,h, x_1, x_2, x_3, x_a,I,E):
+def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
     """Constructs the matrix A such that Ax=b for the statically indeterminate
     problem. Where:
     A is the matrix
     x = (R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
     b = ()
     Inputs:
-    Section = ('z':I_zz, 'y':I_yy, 'G':G, 'J':J, 'E':E, 'z_sc':z_sc)""" 
-    Ky    = (1/(I['E']*I['y']))
-    Kz    = (1/(I['E']*I['z']))
-    L     = 1/(I['G']*I['J'])
+    I = (I_zz, I_yy, G, J, E, z_sc)""" 
+    Ky    = (1/(I[4]*I[1]))
+    Kz    = (1/(I[4]*I[0]))
+    L     = 1/(I[2]*I[3])
     Ksi_1 = x_2-x_a/2
     Ksi_2 = x_2+x_a/2
+    z_sc = I[5] # a negative value
     Eta   = h/2 + z_sc
     mc = macaulay
+    alpha = math.radians(alpha) # convert from degrees to radians
 
     def Alpha(a,b):
     #helper function
-        return   (-(Kz*np.sin(alpha)/6 *mc(a,b,3) +
+        return   -(Kz*np.sin(alpha)/6 *mc(a,b,3) -
+            L*Eta*z_sc*np.sin(alpha)   *mc(a,b) - 
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+        
+#    def Alpha6810(a,b):
+#        return   (Kz*np.sin(alpha)/6 *mc(a,b,3) -
+#        L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
+#        L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+        
+    def Alpha12(a,b):
+        return   (Kz*np.sin(alpha)/6 *mc(a,b,3) +
             L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
-            L*Eta*h/2 *np.cos(alpha)   *mc(a,b)))
-
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+    
+    def Beta(a):
+    # Helper function; changing variable will be either x_1, x_2 or x_3
+        return (((Kz * np.sin(alpha) / 6) * mc(a, Ksi_2, 3) - 
+                L * Eta * z_sc * np.sin(alpha) * mc(a, Ksi_2) + 
+                L * Eta * (h/2) * np.cos(alpha) * mc(a, Ksi_2)) * P +
+                Kz * integral_z(5, a) -
+                L * Eta * integral_z(3, a, z_sc=z_sc))
+                
     def Gamma(a,b):
     #helper function
-        return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
+        return Kz/6 * mc(a, b, 3) + L*Eta**2*mc(a, b)
+    
+    def Delta(a, b):
+    # Helper function to make this lengthy expression more readable
+         return (Ky * ((P * (np.cos(alpha))**2) / 6) * mc(a, b, 3) -
+                L * (h/2) * z_sc * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) +
+                L * (h/2)**2 * P * (np.cos(alpha))**2 * mc(a, b) +
+                Kz * ((P * (np.sin(alpha))**2) / 6) * mc(a, b, 3) -
+                L * (z_sc)**2 * P * (np.sin(alpha))**2 * mc(a, b) -
+                z_sc * L * (h/2) * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) +
+                np.cos(alpha) * L * (h/2) * integral_z(3, a, z_sc=z_sc) +
+                np.sin(alpha) * z_sc * L * integral_z(3, a, z_sc=z_sc) +
+                Kz * np.sin(alpha) * integral_z(5, a))
 
     #       x =#(               R_1y,              R_2y,              R_3y,                                 R_1z,                                 R_2z,                                 R_3z,                                  R_i,                   C_1,           C_2,                   C_3,           C_4,                                 C_5)
     A = np.array([[                1,                 1,                 1,                                    0,                                    0,                                    0,                        np.sin(alpha),                     0,             0,                     0,             0,                                   0],#Row 1
                   [                0,                 0,                 0,                                    1,                                    1,                                    1,                        np.cos(alpha),                     0,             0,                     0,             0,                                   0],#Row 2
-                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0, -h/2 * (np.sin(alpha)+np.cos(alpha)),                     0,             0,                     0,             0,                                   0],#Row 3
-                  [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,            np.cos(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 4
-                  [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,           -np.sin(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 5
+                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0,               -h/2 * (np.cos(alpha)),                     0,             0,                     0,             0,                                   0],#Row 3
+                  [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,                  np.cos(alpha)*Ksi_1,                     0,             0,                     0,             0,                                   0],#Row 4
+                  [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,                 -np.sin(alpha)*Ksi_1,                     0,             0,                     0,             0,                                   0],#Row 5
                   [                0,   Gamma(x_1, x_2),   Gamma(x_1, x_3),                                    0,                                    0,                                    0,                    Alpha(x_1, Ksi_1),                   x_1,             1,                     0,             0,                                   1],#Row 6
-                  [                0,                 0,                 0,                                    0,                 Ky/6*mc(x_1, x_2, 3),                 Ky/6*mc(x_1, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_1, Ksi_1,3),                     0,             0,                   x_1,             1,                                   0],#Row 7
+                  [                0,                 0,                 0,                                    0,                 Ky/6*mc(x_1, x_2, 3),                 Ky/6*mc(x_1, x_3, 3), Ky*np.cos(alpha)/6 *mc(x_1, Ksi_1,3),                     0,             0,                   x_1,             1,                                   0],#Row 7
                   [  Gamma(x_2, x_1),                 0,   Gamma(x_2, x_3),                                    0,                                    0,                                    0,                    Alpha(x_2, Ksi_1),                   x_2,             1,                     0,             0,                                   1],#Row 8
-                  [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
-                  [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             3,                     0,             0,                                   1],#Row 10
+                  [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_3, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
+                  [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             1,                     0,             0,                                   1],#Row 10
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
-                  [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
+                  [Alpha12(Ksi_1, x_1), Alpha12(Ksi_1, x_2), Alpha12(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_3,3),                                 0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha),  z_sc*(np.sin(alpha)+np.cos(alpha))]#Row 1 2
         ])
-    b = {}
+    b = np.array([[P*np.sin(alpha)+integral_z(2)],                              #Row 1
+                  [P*np.cos(alpha)],                                            #Row 2
+                  [-P*np.cos(alpha)*h/2-integral_x(3)],                         #Row 3
+                  [P*np.cos(alpha)*Ksi_2],                                      #Row 4
+                  [-P*np.sin(alpha)*Ksi_2-integral_z(3)],                       #Row 5
+                  [Beta(x_1) + d1 * np.cos(alpha)],                             #Row 6
+                  [Ky*np.cos(alpha)/6*mc(x_1,Ksi_2,3)*P-d1*np.sin(alpha)],      #Row 7
+                  [Beta(x_2)],                                                  #Row 8
+                  [Ky*np.cos(alpha)/6*mc(x_2,Ksi_2,3)*P],                       #Row 9
+                  [Beta(x_3) + d3 * np.cos(alpha)],                             #Row 10
+                  [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],      #Row 11
+                  [Delta(Ksi_1, Ksi_2)]])                                       #Row 12
     
+    return np.linalg.solve(A, b)
+
 
 #=======================================================================================
 "Integration functions for z and x direction"
-
-def integrate_z(grid):
-  """used to integrate the .dat aero data over the x-axis"""
-  Ca = 0.505
-  h_res = 41
-  v_res = 81
-  
-  solution = []
-  for column in range(len(grid[0])):
-    A = 0
-    for row in range(len(grid)):
-      A += grid[row][column]/v_res*Ca
-
-    solution.append(A)
-  return solution
-
-def integrate_x(x_list):
-  """used to integrate the .dat aero data over the x-axis"""
-  Ca = 0.505
-  span = 1.611
-  h_res = 41
-  v_res = 81
-  
-  solution = []
-  prev = 0
-  value = 0
-  for element in range(len(x_list)):
-    value += (prev+x_list[element])/2*(span/h_res)
-    prev=x_list[element]
-    
-    solution.append(value)
-  return solution
 
 def def_integral(f,x1,x2,res=10000):
     interval = (x2-x1)/res
@@ -350,6 +494,108 @@ def indef_integral(f,x1,x2,res=10000):
         a = b
     return solution
 
+
+""" This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
+Then, it calculates the indefinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
+res is the resolution. Higher value = more accurate, but longer runtime """
+def integral_z(n,x_final=1.611,z_sc=0,res=1000):
+    #--------------------- input data --------------------------------
+    newgrid = copy.deepcopy(grid)
+    """ boundaries of the integration """
+    x1 ,x2 = 0, 1.611
+    z1, z2 = 0, 0.505
+    if z_sc != 0:
+        for row in range(len(newgrid)):
+            for element in range(len(newgrid[0])):
+                z = element*0.505/80
+#                print(z)
+                newgrid[row][element] = newgrid[row][element]*(z-z_sc)
+        
+    
+    #------------------ main program ---------------------------
+    start_time = time.time() # to calculate runtime of the program
+
+    """ The program can only calculate integrals of functions, not matrixes or wathever.
+    This function can only have one variable as input: x-value. It also outputs only one value: y-value (=interpolated aero_data)
+    The following defenitinion makes such a function that can later be used in the integral"""
+    def function(x):
+        y = spline_interpolator(matrix, nodes, x)
+        return y
+
+
+    """ the function 'spline_coefficient(nodes,row)' converts an array of x-values (=nodes) and an array of y-values (=column of the aero_data) into a matrix. This matrix is necessary to use the function 'spline_interpolator'. (see interpolation file for explenation) """
+    nodes = np.linspace(z1,z2,len(newgrid[0]))
+    solution = []
+    for row in newgrid:
+        matrix = spline_coefficient(nodes, row)
+        """ This calculates the definite integral from z1 to z2 of 'function' """
+        a = def_integral(function,z1,z2,res)
+        solution.append(a)
+        """ The result is a 1D array of data corresponding to the values of the definite integrals of interpolated columns of the aero_data """
+
+    if n > 2:
+        for i in range(n-2):
+            nodes = np.linspace(x1,x2,len(solution))
+            matrix = spline_coefficient(nodes, solution)
+            solution = indef_integral(function,x1,x2,res)
+            
+    """ This can be used to check the results for when n=1 (only integrated once w.r.t. z-axis) or an intermediate step of another integration"""
+    plot_to_show = 2   # Show the plot of the n'th integral. plot_to_show = 0 for no plots.
+    if n == 1 or n-1==plot_to_show:
+        x = np.linspace(0,1.611,len(solution))
+#        plt.xlabel('x-axis')
+#        plt.ylabel('z-axis')
+#        plt.plot(x,solution)
+#        plt.show()
+
+    if n > 1:
+        nodes = np.linspace(x1,x2,len(solution))
+        matrix = spline_coefficient(nodes, solution)
+        solution = def_integral(function,x1,x_final,res)
+
+
+    end_time = time.time()
+    run_time = end_time - start_time   # print run_time to see the time it took the program to compute
+       
+#    return solution
+    return 0
+
+
+
+
+def integral_x(n,z_final=0.505,res=1000):
+    #--------------------- input data --------------------------------
+    x1 ,x2 = 0, 1.611
+    z1, z2 = 0, 0.505
+
+    #------------------ main program ---------------------------
+    def function(x):
+        y = spline_interpolator(matrix, nodes, x)
+        return y
+
+
+    nodes = np.linspace(x1,x2,len(aero_data[0]))
+    solution = []
+    for row in aero_data:
+        matrix = spline_coefficient(nodes, row)
+        a = def_integral(function,x1,x2,res)
+        solution.append(a)
+
+    if n > 2:
+        for i in range(n-2):
+            nodes = np.linspace(z1,z2,len(solution))
+            matrix = spline_coefficient(nodes, solution)
+            solution = indef_integral(function,z1,z2,res)
+            
+
+    if n > 1:
+        nodes = np.linspace(z1,z2,len(solution))
+        matrix = spline_coefficient(nodes, solution)
+        solution = def_integral(function,z1,z_final,res)
+
+#    return solution
+    return 0
+
 #=======================================================================================
 "Interpolators 2 different ways: linear of cubic for cubic interpolation 2 boundary conditions are required"
 def spline_coefficient(node,value):
@@ -365,7 +611,7 @@ def spline_coefficient(node,value):
         a = value[i]
         b=(value[i+1]-value[i])/(node[i+1]-node[i])
         c = node[i]
-        print(a,b,c)
+        # print(a,b,c)
         Splinematrix.append([a,b,c])
     return np.array(Splinematrix)
 
@@ -376,9 +622,9 @@ def spline_interpolator(Splinematrixx, node, inter_node):
 
     nodenumber=0
     for i in node:
-        if inter_value<= i:  #inter_value>node[-2]: #check at which spline to interpolate
+        if inter_node<= i:  #inter_value>node[-2]: #check at which spline to interpolate
             break
-        if inter_value >= node[-2]:
+        if inter_node >= node[-2]:
             nodenumber = len(node)-1
             break
         else:
@@ -398,7 +644,7 @@ def cubic_coefficients(node,value):
     #output Array containing Splinematrix
     boundary1 = (value[1]-value[0])/(node[1]-node[0])
     boundary2 = (value[-1]-value[-2])/(node[-1]-node[-2])
-    print(boundary1,boundary2)
+    # print(boundary1,boundary2)
     Mmatrix = []
     dmatrix = []
     Lambda0 = 1
@@ -429,14 +675,14 @@ def cubic_coefficients(node,value):
     coefficients = np.linalg.solve(Mmatrix,dmatrix)
     return coefficients
 
-def cubic_interpolator(coefficients, node, value, inter_value):
+def cubic_interpolator(coefficients, node, value, inter_node):
     # This function actually interpolates (1 point)
     # input Splinematrix from previous function, all nodes (1d array), intervalue (the point to be interpolated)
     nodenumber=0
     for i in node:
-        if inter_value<= i:  #inter_value>node[-2]: #check at which spline to interpolate
+        if inter_node<= i:  #inter_value>node[-2]: #check at which spline to interpolate
             break
-        if inter_value >= node[-2]:
+        if inter_node >= node[-2]:
             nodenumber = len(node)-1
             break
         else:
@@ -452,7 +698,7 @@ def cubic_interpolator(coefficients, node, value, inter_value):
     b =  coefficients[nodenumber]/(6*hi)
     c = coefficients[nodenumber-1]*hi*hi/6
     d = coefficients[nodenumber]*hi*hi/6
-    si = a*(xi-inter_value)**3+b*(inter_value-x_i)**3+(y_i-c)*(xi-inter_value)/hi+(yi-d)*(inter_value-x_i)/hi
+    si = a*(xi-inter_node)**3+b*(inter_node-x_i)**3+(y_i-c)*(xi-inter_node)/hi+(yi-d)*(inter_node-x_i)/hi
     return si
 
 
@@ -488,8 +734,46 @@ unit = 'm'
 # plt.ylabel('z-axis')
 # plt.plot(x,int_5)
 # plt.show()
+#ugly code just for testing results
+
+"From here it's just random testing to check validity of our model"
+def v_deflection(x):
+    Kz    = (1/(f100.E*4.753851442684436e-06))
+    P = f100.P
+    x1 = f100.x_1
+    x2 = f100.x_2
+    x3 = f100.x_3
+    xa = f100.x_a
+    ksi1 = x2 - xa/2
+    ksi2 = x2 + xa/2
+    alpha = math.radians(f100.theta)
+    
+    R1y = 4.04299763e+04
+    R2y = -5.55709213e+04
+    R3y = 1.51409450e+04
+    Ri = -0.00000000e+00
+    C1 = -1.17371393e-02
+    C2 = 4.83649882e-03
+    v = -Kz* (-R1y/6*macaulay(x,x1,3) - R2y/6*macaulay(x,x2,3) - R3y/6*macaulay(x,x3,3) - Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) + P*np.sin(alpha)/6*macaulay(x,ksi2,3) + integral_z(5)) +C1*x + C2
+    
+    return v
+def deflectionplot(func, length):
+    funcdata = [] # y(x)
+    xdata = np.linspace(0,length,100)
+    for i in xdata:
+#        print(i)
+        ydata = func(i) * np.cos(math.radians(30))
+        print(ydata)
+        funcdata.append(ydata)
+        
+    plt.figure()
+    plt.plot(xdata, funcdata)
+    plt.show()
+    
+def test_integral():
+    
 
 
-
+#unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
 
 
