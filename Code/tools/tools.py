@@ -185,7 +185,7 @@ class Aircraft(object):
         self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk
 
     #I_yy
-        steiner_boom_skin_yy = np.round(np.square(self.boom_skin_z_y_a[0,:]) * self.boom_skin_z_y_a[2,:], 7)
+        steiner_boom_skin_yy = np.square(self.boom_skin_z_y_a[0,:]-self.cent[0]) * self.boom_skin_z_y_a[2,:]
 
         Iyy_circ = (np.pi/8 - 8/(np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
         Iyy_spar = 0
