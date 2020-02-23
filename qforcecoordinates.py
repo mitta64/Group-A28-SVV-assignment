@@ -5,7 +5,7 @@ Created on Mon Feb 17 13:04:56 2020
 @author: changkyupark
 """
 import numpy as np
-import tools.py
+import tools as tl
 
 def _theta(i, N):
     # i: i-th node
@@ -24,7 +24,7 @@ Ca = 0.505
 stepsize = 0.01
 zcoord = [] #chordwise - 81 elements
 for i in np.arange(1,81):
-    zcoord.append(_coord(Ca, _theta(i, 41), _theta(i+1,41)) )
+    zcoord.append(_coord(Ca, _theta(i, 81), _theta(i+1,81)) )
     
 xcoord = [] #spanwise - 41 elements
 for j in np.arange(1,41):
