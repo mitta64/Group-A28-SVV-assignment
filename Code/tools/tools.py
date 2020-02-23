@@ -35,10 +35,10 @@ class Aircraft(object):
         self.d_1    = round(d_1/100,8)      #"Vertical displacement hinge 1[m]"
         self.d_3    = round(d_3/100,8)      #"Vertical displacement hinge 3[m]"
         self.theta  = theta                 #"Maximum upward deflection[deg]"
-        self.P      = round(P*1000,8)       #"Load in actuator 2[N]"
+        self.P      = round(0*1000,8)       #"Load in actuator 2[N]"
         # Material properties
-        self.G      = 28 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa]"
-        self.E      = 71.1 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa]"
+        self.G      = 27.1 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa] is 28"
+        self.E      = 72.9 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa] is 71.1"
     def description(self):
 
         prop = vars(self)
@@ -369,7 +369,8 @@ f100.centroid()
 f100.second_moi()
 f100.shear_centre()
 f100.torsional_stiffness()
-I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+#I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 0.00017531714118864135, f100.E, -0.08553893540215983] # testing true data
 #=======================================================================================
 
 def macaulay(x, x_n, pwr=1):
@@ -396,55 +397,65 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
     z_sc = I[5] # a negative value
     Eta   = h/2 + z_sc
     mc = macaulay
-    alpha = alpha/180*np.pi # convert from degrees to radians
+    alpha = math.radians(alpha) # convert from degrees to radians
 
     def Alpha(a,b):
     #helper function
-        return   (-(Kz*np.sin(alpha)/6 *mc(a,b,3) +
+        return   -(Kz*np.sin(alpha)/6 *mc(a,b,3) -
+            L*Eta*z_sc*np.sin(alpha)   *mc(a,b) - 
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+        
+#    def Alpha6810(a,b):
+#        return   (Kz*np.sin(alpha)/6 *mc(a,b,3) -
+#        L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
+#        L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+        
+    def Alpha12(a,b):
+        return   (Kz*np.sin(alpha)/6 *mc(a,b,3) +
             L*Eta*z_sc*np.sin(alpha)   *mc(a,b) + 
-            L*Eta*h/2 *np.cos(alpha)   *mc(a,b)))
+            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
     
     def Beta(a):
     # Helper function; changing variable will be either x_1, x_2 or x_3
-        return (((np.sin(alpha) / 6) * mc(a, Ksi_2, 3) - 
-                L * Eta * z_sc * np.sin(alpha) * mc(a, Ksi_2) - 
+        return (((Kz * np.sin(alpha) / 6) * mc(a, Ksi_2, 3) - 
+                L * Eta * z_sc * np.sin(alpha) * mc(a, Ksi_2) + 
                 L * Eta * (h/2) * np.cos(alpha) * mc(a, Ksi_2)) * P +
-                Kz * integral_z(5, a) +
-                L * Eta * integral_z(3, a, z_sc))
+                Kz * integral_z(5, a) -
+                L * Eta * integral_z(3, a, z_sc=z_sc))
                 
     def Gamma(a,b):
     #helper function
-        return Kz/6 * mc(a, b, 3) - L*Eta**2*mc(a, b)
+        return Kz/6 * mc(a, b, 3) + L*Eta**2*mc(a, b)
     
     def Delta(a, b):
     # Helper function to make this lengthy expression more readable
          return (Ky * ((P * (np.cos(alpha))**2) / 6) * mc(a, b, 3) -
                 L * (h/2) * z_sc * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) +
                 L * (h/2)**2 * P * (np.cos(alpha))**2 * mc(a, b) +
-                Kz * ((P * (np.sin(alpha))**2) / 6) * mc(a, b, 3) +
-                L * (z_sc)**2 * P * (np.sin(alpha))**2 * mc(a, b) +
-                z_sc * L * (h/2) * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) -
-                np.cos(alpha) * L * (h/2) * integral_z(3, a, z_sc) -
-                np.sin(alpha) * z_sc * L * integral_z(3, a, z_sc) +
+                Kz * ((P * (np.sin(alpha))**2) / 6) * mc(a, b, 3) -
+                L * (z_sc)**2 * P * (np.sin(alpha))**2 * mc(a, b) -
+                z_sc * L * (h/2) * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) +
+                np.cos(alpha) * L * (h/2) * integral_z(3, a, z_sc=z_sc) +
+                np.sin(alpha) * z_sc * L * integral_z(3, a, z_sc=z_sc) +
                 Kz * np.sin(alpha) * integral_z(5, a))
 
     #       x =#(               R_1y,              R_2y,              R_3y,                                 R_1z,                                 R_2z,                                 R_3z,                                  R_i,                   C_1,           C_2,                   C_3,           C_4,                                 C_5)
     A = np.array([[                1,                 1,                 1,                                    0,                                    0,                                    0,                        np.sin(alpha),                     0,             0,                     0,             0,                                   0],#Row 1
                   [                0,                 0,                 0,                                    1,                                    1,                                    1,                        np.cos(alpha),                     0,             0,                     0,             0,                                   0],#Row 2
-                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0, -h/2 * (np.sin(alpha)+np.cos(alpha)),                     0,             0,                     0,             0,                                   0],#Row 3
-                  [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,            np.cos(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 4
-                  [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,           -np.sin(alpha)*(x_2-x_a/2),                     0,             0,                     0,             0,                                   0],#Row 5
+                  [             -h/2,              -h/2,              -h/2,                                    0,                                    0,                                    0,               -h/2 * (np.cos(alpha)),                     0,             0,                     0,             0,                                   0],#Row 3
+                  [                0,                 0,                 0,                                  x_1,                                  x_2,                                  x_3,                  np.cos(alpha)*Ksi_1,                     0,             0,                     0,             0,                                   0],#Row 4
+                  [             -x_1,              -x_2,              -x_3,                                    0,                                    0,                                    0,                 -np.sin(alpha)*Ksi_1,                     0,             0,                     0,             0,                                   0],#Row 5
                   [                0,   Gamma(x_1, x_2),   Gamma(x_1, x_3),                                    0,                                    0,                                    0,                    Alpha(x_1, Ksi_1),                   x_1,             1,                     0,             0,                                   1],#Row 6
-                  [                0,                 0,                 0,                                    0,                 Ky/6*mc(x_1, x_2, 3),                 Ky/6*mc(x_1, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_1, Ksi_1,3),                     0,             0,                   x_1,             1,                                   0],#Row 7
+                  [                0,                 0,                 0,                                    0,                 Ky/6*mc(x_1, x_2, 3),                 Ky/6*mc(x_1, x_3, 3), Ky*np.cos(alpha)/6 *mc(x_1, Ksi_1,3),                     0,             0,                   x_1,             1,                                   0],#Row 7
                   [  Gamma(x_2, x_1),                 0,   Gamma(x_2, x_3),                                    0,                                    0,                                    0,                    Alpha(x_2, Ksi_1),                   x_2,             1,                     0,             0,                                   1],#Row 8
-                  [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_2, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
-                  [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             3,                     0,             0,                                   1],#Row 10
+                  [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_3, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
+                  [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             1,                     0,             0,                                   1],#Row 10
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
-                  [Alpha(Ksi_1, x_1), Alpha(Ksi_1, x_2), Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3),                                    0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha), z_sc*(np.sin(alpha)+np. cos(alpha))]#Row 1 2
+                  [Alpha12(Ksi_1, x_1), Alpha12(Ksi_1, x_2), Alpha12(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_3,3),                                 0, Ksi_1 * np.sin(alpha), np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha),  z_sc*(np.sin(alpha)+np.cos(alpha))]#Row 1 2
         ])
     b = np.array([[P*np.sin(alpha)+integral_z(2)],                              #Row 1
-                  [-P*np.cos(alpha)],                                           #Row 2
-                  [-P*np.sin(alpha)*h/2-P*np.cos(alpha)*h/2-integral_x(3)],     #Row 3
+                  [P*np.cos(alpha)],                                            #Row 2
+                  [-P*np.cos(alpha)*h/2-integral_x(3)],                         #Row 3
                   [P*np.cos(alpha)*Ksi_2],                                      #Row 4
                   [-P*np.sin(alpha)*Ksi_2-integral_z(3)],                       #Row 5
                   [Beta(x_1) + d1 * np.cos(alpha)],                             #Row 6
@@ -455,7 +466,8 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
                   [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],      #Row 11
                   [Delta(Ksi_1, Ksi_2)]])                                       #Row 12
     
-    return np.linalg.solve(np.transpose(A), b)
+    return np.linalg.solve(A, b)
+
 
 #=======================================================================================
 "Integration functions for z and x direction"
@@ -496,6 +508,7 @@ def integral_z(n,x_final=1.611,z_sc=0,res=1000):
         for row in range(len(newgrid)):
             for element in range(len(newgrid[0])):
                 z = element*0.505/80
+#                print(z)
                 newgrid[row][element] = newgrid[row][element]*(z-z_sc)
         
     
@@ -530,10 +543,10 @@ def integral_z(n,x_final=1.611,z_sc=0,res=1000):
     plot_to_show = 2   # Show the plot of the n'th integral. plot_to_show = 0 for no plots.
     if n == 1 or n-1==plot_to_show:
         x = np.linspace(0,1.611,len(solution))
-        plt.xlabel('x-axis')
-        plt.ylabel('z-axis')
-        plt.plot(x,solution)
-        plt.show()
+#        plt.xlabel('x-axis')
+#        plt.ylabel('z-axis')
+#        plt.plot(x,solution)
+#        plt.show()
 
     if n > 1:
         nodes = np.linspace(x1,x2,len(solution))
@@ -544,7 +557,8 @@ def integral_z(n,x_final=1.611,z_sc=0,res=1000):
     end_time = time.time()
     run_time = end_time - start_time   # print run_time to see the time it took the program to compute
        
-    return solution
+#    return solution
+    return 0
 
 
 
@@ -579,7 +593,8 @@ def integral_x(n,z_final=0.505,res=1000):
         matrix = spline_coefficient(nodes, solution)
         solution = def_integral(function,z1,z_final,res)
 
-    return solution
+#    return solution
+    return 0
 
 #=======================================================================================
 "Interpolators 2 different ways: linear of cubic for cubic interpolation 2 boundary conditions are required"
@@ -719,8 +734,46 @@ unit = 'm'
 # plt.ylabel('z-axis')
 # plt.plot(x,int_5)
 # plt.show()
+#ugly code just for testing results
+
+"From here it's just random testing to check validity of our model"
+def v_deflection(x):
+    Kz    = (1/(f100.E*4.753851442684436e-06))
+    P = f100.P
+    x1 = f100.x_1
+    x2 = f100.x_2
+    x3 = f100.x_3
+    xa = f100.x_a
+    ksi1 = x2 - xa/2
+    ksi2 = x2 + xa/2
+    alpha = math.radians(f100.theta)
+    
+    R1y = 4.04299763e+04
+    R2y = -5.55709213e+04
+    R3y = 1.51409450e+04
+    Ri = -0.00000000e+00
+    C1 = -1.17371393e-02
+    C2 = 4.83649882e-03
+    v = -Kz* (-R1y/6*macaulay(x,x1,3) - R2y/6*macaulay(x,x2,3) - R3y/6*macaulay(x,x3,3) - Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) + P*np.sin(alpha)/6*macaulay(x,ksi2,3) + integral_z(5)) +C1*x + C2
+    
+    return v
+def deflectionplot(func, length):
+    funcdata = [] # y(x)
+    xdata = np.linspace(0,length,100)
+    for i in xdata:
+#        print(i)
+        ydata = func(i) * np.cos(math.radians(30))
+        print(ydata)
+        funcdata.append(ydata)
+        
+    plt.figure()
+    plt.plot(xdata, funcdata)
+    plt.show()
+    
+def test_integral():
+    
 
 
-
+#unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
 
 

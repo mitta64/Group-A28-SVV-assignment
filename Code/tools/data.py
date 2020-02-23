@@ -1,6 +1,6 @@
 # Retrieve all data
 
-name = 'f100'
+name = 'F100'
 C_a = 0.505  # m
 l_a = 1.611  # m
 x_1 = 0.125  # m
