@@ -165,8 +165,6 @@ class Aircraft(object):
     #=====================
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
-        print (arr_z_y_a)
-
 
         x_circ = - (self.h/2- self.h/np.pi)
         a_circ = np.pi * self.h/2 * self.t_sk
@@ -376,10 +374,11 @@ class Aircraft(object):
             plt.grid()
             plt.show()
 
-    def bending_stress(self,My,Mz,plot=True):
+    def bending_stress(self,My,Mz,plot=False):
         self.plot_aileron(plot=False)
         stress      = lambda z, y:My/self.Iyy*z + Mz/self.Izz*y
         self.sigma  = stress(self.lines[0],self.lines[1])
+
         if plot:
             plt.subplot(111,aspect='equal')
             points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='jet')
