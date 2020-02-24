@@ -6,8 +6,7 @@ import copy
 
 from data import aero_data, grid, f100, transpose
 from integrator import def_integral, indef_integral
-from interpolator import spline_coefficient, spline_interpolator, cubic_coefficient, cubic_interpolator
-
+from interpolator import spline_coefficient, spline_interpolator
 
 
 """ This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
@@ -32,43 +31,39 @@ def integral_z(n,x_final=1.611,z_sc=None,res=1000):
     """ The program can only calculate integrals of functions, not matrixes or wathever.
     This function can only have one variable as input: x-value. It also outputs only one value: y-value (=interpolated aero_data)
     The following defenitinion makes such a function that can later be used in the integral"""
-    def function(x):
-        y = cubic_interpolator(matrix, nodes, row, x)
+    def spline_function(x):
+        y = spline_interpolator(matrix, nodes, x)
         return y
-
 
     """ the function 'spline_coefficient(nodes,row)' converts an array of x-values (=nodes) and an array of y-values (=column of the aero_data) into a matrix. This matrix is necessary to use the function 'spline_interpolator'. (see interpolation file for explenation) """
     nodes = np.linspace(z1,z2,len(newgrid[0]))
     solution = []
     for row in newgrid:
-        print(len(nodes))
-        matrix = cubic_coefficient(nodes, row)
-        print(len(matrix))
-        break
+        matrix = spline_coefficient(nodes, row)
         """ This calculates the definite integral from z1 to z2 of 'function' """
-        a = def_integral(function,z1,z2,res)
+        a = def_integral(spline_function,z1,z2,res)
         solution.append(a)
         """ The result is a 1D array of data corresponding to the values of the definite integrals of interpolated columns of the aero_data """
 
     if n > 2:
         for i in range(n-2):
             nodes = np.linspace(x1,x2,len(solution))
-            matrix = cubic_coefficient(nodes, solution)
-            solution = indef_integral(function,x1,x2,res)
+            matrix = spline_coefficient(nodes, solution)
+            solution = indef_integral(spline_function,x1,x2,res)
             
     """ This can be used to check the results for when n=1 (only integrated once w.r.t. z-axis) or an intermediate step of another integration"""
-    plot_to_show = 2   # Show the plot of the n'th integral. plot_to_show = 0 for no plots.
+    plot_to_show = 0   # Show the plot of the n'th integral. plot_to_show = 0 for no plots.
     if n == 1 or n-1==plot_to_show:
         x = np.linspace(0,1.611,len(solution))
-#        plt.xlabel('x-axis')
-#        plt.ylabel('z-axis')
-#        plt.plot(x,solution)
-#        plt.show()
+        plt.xlabel('x-axis')
+        plt.ylabel('z-axis')
+        plt.plot(x,solution)
+        plt.show()
 
     if n > 1:
         nodes = np.linspace(x1,x2,len(solution))
-        matrix = cubic_coefficient(nodes, solution)
-        solution = def_integral(function,x1,x_final,res)
+        matrix = spline_coefficient(nodes, solution)
+        solution = def_integral(spline_function,x1,x_final,res)
 
 
     end_time = time.time()
