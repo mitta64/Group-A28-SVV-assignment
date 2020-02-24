@@ -105,3 +105,10 @@ def cubic_interpolator(coefficients, node, value, inter_node):
 
 
 
+node = [1,2,3,4,5]
+value = [2,4,6,4,0]
+inter_value = 1.05#
+coefficients = cubic_coefficients(node,value)
+
+a = cubic_interpolator(coefficients, node, value, inter_value)
+print(a)

@@ -157,7 +157,7 @@ class Aircraft(object):
         self.boom_loc_area = np.append(self.boom_loc_area, [boom_arc_down_loc], axis = 0)
         
         # Add column of boom areas to the total array
-        boom_area_column = np.full((11,1), self.boom_area)
+        boom_area_column = np.full((self.n_st,1), self.boom_area)
         self.boom_loc_area = np.append(self.boom_loc_area, boom_area_column, axis = 1)
             #"Final output of booms function is self.boom_loc_area"
     #=====================
@@ -165,6 +165,7 @@ class Aircraft(object):
     #=====================
     def centroid(self):
         arr_z_y_a = np.zeros(shape = (3, 4 + self.n_st))
+        print (arr_z_y_a)
 
 
         x_circ = - (self.h/2- self.h/np.pi)
@@ -370,8 +371,11 @@ class Aircraft(object):
         plt.xlabel('z axes [m]')
         plt.ylabel('y axes [m]')
         plt.legend()
+        plt.gca().invert_xaxis()
         plt.grid()
         plt.show()
+    def bending_stress(self,My,Mz):
+        pass
 
 
     
@@ -379,8 +383,8 @@ class Aircraft(object):
             
         
 #=======================================================================================
-f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389,
-                1.245, 30, 49.2)
+f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245, 30, 49.2)
+A320 = Aircraft("Airbus A320", 0.547,2.771,0.153,1.281,2.681,28.,22.5,1.1,2.9,1.2,1.5,2.,17,1.103,1.642,26.,91.7)
 
 #====================================================
 # Assign all required properties to one term
