@@ -393,6 +393,17 @@ class Aircraft(object):
     def bending_stress(self, My, Mz):
         pass
 
+        if plot:
+            plt.subplot(111,aspect='equal')
+            points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='hsv')
+            plt.colorbar(points)
+            plt.title(self.name )
+            plt.xlabel('z axes [m]')
+            plt.ylabel('y axes [m]')
+            plt.legend()
+            plt.gca().invert_xaxis()
+            plt.grid()
+            plt.show()
 
 # =======================================================================================
 f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245,
