@@ -381,7 +381,7 @@ class Aircraft(object):
 
         if plot:
             plt.subplot(111,aspect='equal')
-            points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='jet')
+            points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='hsv')
             plt.colorbar(points)
             plt.title(self.name )
             plt.xlabel('z axes [m]')
