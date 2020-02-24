@@ -35,7 +35,7 @@ class Aircraft(object):
         self.d_1    = round(d_1/100,8)      #"Vertical displacement hinge 1[m]"
         self.d_3    = round(d_3/100,8)      #"Vertical displacement hinge 3[m]"
         self.theta  = theta                 #"Maximum upward deflection[deg]"
-        self.P      = round(P*1000,8)       #"Load in actuator 2[N]"
+        self.P      = round(0*1000,8)       #"Load in actuator 2[N]"
         # Material properties
         self.G      = 27.1 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa] is 28"
         self.E      = 72.9 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa] is 71.1"
@@ -200,10 +200,11 @@ class Aircraft(object):
         self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk
 
     #I_yy
-        steiner_boom_skin_yy = np.square(self.boom_skin_z_y_a[0,:]-self.cent[0]) * self.boom_skin_z_y_a[2,:]
+        steiner_boom_skin_yy = np.round(np.square(self.boom_skin_z_y_a[0,:]) * self.boom_skin_z_y_a[2,:], 7)
 
         Iyy_circ = (np.pi/8 - 8/(np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
         Iyy_spar = 0
+        l_sk     = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
         Iyy_sk   = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk))** 2 / 12
 
         self.Iyy = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk
@@ -351,29 +352,6 @@ class Aircraft(object):
                                          + (2 * (q0_1 - q0_2)) / (self.G * self.t_sp))
         # Torsional stiffness J
         self.J = 1 / (self.G * dtheta_dz)
-
-    def plot_aileron(self):
-        step_n = 100
-        theta_step =np.linspace(-np.pi/2,np.pi/2,step_n)
-        self.circ = np.row_stack(([np.cos(theta_step)*self.h/2- self.h/2],[np.sin(theta_step)*self.h/2])) #circ[[z],[y]]
-        self.spar = np.row_stack(([np.ones(step_n)* - self.h/2], [np.linspace(- self.h/2,self.h/2,step_n)]))
-        self.sk_up = np.row_stack(([np.linspace(-self.h/2,-(self.C_a),step_n)], [np.linspace(self.h/2,0,step_n)]))
-        self.sk_down = np.row_stack(([np.linspace(-self.h/2,-(self.C_a),step_n)], [np.linspace(-self.h/2,0,step_n)]))
-
-
-        plt.plot(self.circ[0,:],self.circ[1,:],'black',label = 'skin')
-        plt.plot(self.spar[0,:], self.spar[1,:],'blue',label = 'Spar')
-        plt.plot(self.sk_up[0,:], self.sk_up[1,:],'black')
-        plt.plot(self.sk_down[0,:], self.sk_down[1,:],'black')
-        plt.scatter(self.boom_loc_area[:,0],self.boom_loc_area[:,1],c = 'red',marker = 'D' , label = 'Stiffners')
-        plt.title(self.name )
-        plt.xlabel('z axes [m]')
-        plt.ylabel('y axes [m]')
-        plt.legend()
-        plt.grid()
-        plt.show()
-
-
     
         
             
@@ -441,9 +419,9 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
     # Helper function; changing variable will be either x_1, x_2 or x_3
         return (((Kz * np.sin(alpha) / 6) * mc(a, Ksi_2, 3) 
                - L * Eta * z_sc * np.sin(alpha) * mc(a, Ksi_2) 
-               - L * Eta * (h/2) * np.cos(alpha) * mc(a, Ksi_2)) * P 
+               + L * Eta * (h/2) * np.cos(alpha) * mc(a, Ksi_2)) * P 
                + Kz * integral_z(5, a)
-               - L * Eta * integral_z(3, a, z_sc=z_sc))
+               + L * Eta * integral_z(3, a, z_sc=z_sc))
                 
     def Gamma(a,b):
     #helper function
@@ -454,8 +432,8 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
          return (Ky * ((P * (np.cos(alpha))**2) / 6) * mc(a, b, 3)
                 + L * (h/2)**2 * P * (np.cos(alpha))**2 * mc(a, b) 
                 - Kz * ((P * (np.sin(alpha))**2) / 6) * mc(a, b, 3) 
-                - L * (z_sc)**2 * P * (np.sin(alpha))**2 * mc(a, b) 
-                - 2* z_sc * L * (h/2) * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) *0
+                + L * (z_sc)**2 * P * (np.sin(alpha))**2 * mc(a, b) 
+                - 2* z_sc * L * (h/2) * P * np.sin(alpha) * np.cos(alpha) * mc(a, b) 
                 + np.cos(alpha) * L * (h/2) * integral_z(3, a, z_sc=z_sc) 
                 - np.sin(alpha) * z_sc * L * integral_z(3, a, z_sc=z_sc) 
                 - Kz * np.sin(alpha) * integral_z(5, a))
@@ -472,11 +450,11 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
                   [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_3, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
                   [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             1,                     0,             0,                                   1],#Row 10
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
-                  [-1*Alpha(Ksi_1, x_1), -1*Alpha(Ksi_1, x_2), -1*Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_3,3),                                 0, -Ksi_1 * np.sin(alpha), -np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha),  z_sc*(np.sin(alpha)+h/2*np.cos(alpha))]#Row 1 2
+                  [-1*Alpha(Ksi_1, x_1), -1*Alpha(Ksi_1, x_2), -1*Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_3,3),                                 0, -Ksi_1 * np.sin(alpha), -np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha),  z_sc*(np.sin(alpha)-h/2*np.cos(alpha))]#Row 1 2
         ])
     b = np.array([[P*np.sin(alpha)+integral_z(2)],                              #Row 1
                   [P*np.cos(alpha)],                                            #Row 2
-                  [-P*np.cos(alpha)*h/2-integral_x(3)],                  #Row 3
+                  [-P*np.cos(alpha)*h/2-integral_z(2,z_sc=0)],                  #Row 3
                   [P*np.cos(alpha)*Ksi_2],                                      #Row 4
                   [-P*np.sin(alpha)*Ksi_2-integral_z(3)],                       #Row 5
                   [Beta(x_1) + d1 * np.cos(alpha)],                             #Row 6
@@ -757,8 +735,6 @@ unit = 'm'
 #ugly code just for testing results
 
 "From here it's just random testing to check validity of our model using values from verif. model"
-unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
-
 def v_deflection(x):
     Kz    = (1/(f100.E*4.753851442684436e-06))
     P = f100.P
@@ -770,12 +746,12 @@ def v_deflection(x):
     ksi2 = x2 + xa/2
     alpha = math.radians(f100.theta)
     
-    R1y = unknowns[0][0]
-    R2y = unknowns[1][0]
-    R3y = unknowns[2][0]
-    Ri = unknowns[6][0]
-    C1 = unknowns[7][0]
-    C2 = unknowns[8][0]
+    R1y = 3.87395577e+04
+    R2y = -5.60851739e+04
+    R3y = 1.68066859e+04
+    Ri = 1.09269098e+04
+    C1 = -1.16230188e-02
+    C2 = 3.21979140e-03
     v = Kz* (R1y/6*macaulay(x,x1,3) + R2y/6*macaulay(x,x2,3) + R3y/6*macaulay(x,x3,3) + Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) - P*np.sin(alpha)/6*macaulay(x,ksi2,3) - integral_z(5)) +C1*x + C2
     
     return v
@@ -791,12 +767,12 @@ def w_deflection(x):
     ksi2 = x2 + xa/2
     alpha = math.radians(f100.theta)
     
-    R1z = unknowns[3][0]
-    R2z = unknowns[4][0]
-    R3z = unknowns[5][0]
-    Ri = unknowns[6][0]
-    C3 = unknowns[9][0]
-    C4 = unknowns[10][0]
+    R1z = -2.28219964e+05
+    R2z = 3.03061030e+05
+    R3z = -8.43040476e+04
+    Ri =1.09269098e+04
+    C3 = 6.79219752e-03
+    C4 = -2.79402469e-03
     w = Ky*( R1z/6* macaulay(x,x1,3) + R2z/6*macaulay(x,x2,3) + R3z/6*macaulay(x,x3,3) + Ri*np.cos(alpha)/6*macaulay(x,ksi1,3) - P*np.cos(alpha)/6*macaulay(x,ksi2,3)) + C3*x + C4
     
     return w
@@ -815,13 +791,13 @@ def twist(x):
     alpha = math.radians(f100.theta)
     eta = -h - zsc
     
-    R1y = unknowns[0][0]
-    R2y = unknowns[1][0]
-    R3y = unknowns[2][0]
-    Ri = unknowns[6][0]
-    C5 = unknowns[11][0]
+    R1y = 3.87395577e+04
+    R2y = -5.60851739e+04
+    R3y = 1.68066859e+04
+    Ri = 1.09269098e+04
+    C5 = 1.60010054e-03
     
-    twist = L* ( eta*R1y*macaulay(x,x1,1) + eta*R2y*macaulay(x,x2,1) + eta*R3y*macaulay(x,x3,1) - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) - h/2*Ri*np.cos(alpha)*macaulay(x,ksi1,1) + zsc*P*np.sin(alpha)*macaulay(x,ksi2,1) + h/2*P*np.cos(alpha)*macaulay(x,ksi2) + integral_z(3,z_sc=zsc) ) + C5
+    twist = L* ( eta*R1y*macaulay(x,x1,1) + eta*R2y*macaulay(x,x2,1) + eta*R3y*macaulay(x,x3,1) + zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) - h/2*Ri*np.cos(alpha)*macaulay(x,ksi1,1) - zsc*P*np.sin(alpha)*macaulay(x,ksi2,1) + h/2*P*np.cos(alpha)*macaulay(x,ksi2) + integral_z(3,z_sc=zsc) ) + C5
     return twist
     
 
@@ -830,7 +806,7 @@ def v_globaldeflection(x):
     h = f100.h
     zsc = -0.08553893540215983
     eta = -h - zsc
-    v_global = v_deflection(x)*np.cos(alpha) - w_deflection(x)*np.sin(alpha) + eta*np.sin(twist(x))
+    v_global = v_deflection(x)/np.cos(alpha) - w_deflection(x)*np.sin(alpha) + eta*twist(x)
     return v_global
     
     
@@ -847,6 +823,9 @@ def deflectionplot(func, length): # length = f100.C_a or f100.l_a
     plt.figure()
     plt.plot(xdata, funcdata)
     plt.show()
+    
+#def test_integral():
+    
 
 
-
+#unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
