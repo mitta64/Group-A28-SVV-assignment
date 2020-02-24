@@ -109,6 +109,5 @@ inter_value = 0.8
 coefficients = cubic_coefficients(node,value)
 
 a = cubic_interpolator(coefficients, node, value, inter_value)
-print(a)
 
 
