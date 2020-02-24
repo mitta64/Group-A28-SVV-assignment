@@ -80,7 +80,7 @@ def cubic_coefficients(node,value):
 def cubic_interpolator(coefficients, node, value, inter_node):
     # This function actually interpolates (1 point)
     # input Splinematrix from previous function, all nodes (1d array), intervalue (the point to be interpolated)
-    nodenumber=0
+    nodenumber=1
     for i in node:
         if inter_node<= i:  #inter_value>node[-2]: #check at which spline to interpolate
             break
@@ -89,7 +89,7 @@ def cubic_interpolator(coefficients, node, value, inter_node):
             break
         else:
             nodenumber+=1
-    nodenumber = nodenumber #no
+    nodenumber = nodenumber-1 #no
     xi = node[nodenumber]
     x_i = node[nodenumber-1]
     yi = value[nodenumber]
@@ -105,3 +105,10 @@ def cubic_interpolator(coefficients, node, value, inter_node):
 
 
 
+node = [1,2,3,4,5]
+value = [2,4,6,8,10]
+#inter_value = 3.5
+#coefficients = cubic_coefficients(node,value)
+
+#a = cubic_interpolator(coefficients, node, value, inter_value)
+#print(a)
