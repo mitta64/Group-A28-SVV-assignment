@@ -37,21 +37,21 @@ def spline_interpolator(Splinematrixx, node, inter_node):
     return si
 
 
-def cubic_coefficient(node,value):
+def cubic_coefficients(node,value):
     # IMPORTANT: needs a grid in chronological order (from small to big)
     #This function creates a matrix containing all the splines coefficients for every node,
     #This way the main calculation only has to be done once, and spline_interpolator actually computes the value
     #input: nodes (1d list), value at these nodes (1dlist), boundary 1 (f'(0)=?),boundary 2 (f'(n)=?)
     #output Array containing Splinematrix
-    boundary1 = (value[1]-value[0])/(node[1]-node[0])
-    boundary2 = (value[-1]-value[-2])/(node[-1]-node[-2])
-    #print(boundary1,boundary2)
+    #boundary1 = (value[1]-value[0])/(node[1]-node[0])
+    #boundary2 = (value[-1]-value[-2])/(node[-1]-node[-2])
+    # print(boundary1,boundary2)
     Mmatrix = []
     dmatrix = []
     Lambda0 = 1
     #boundary 1
-    Mmatrix.append(list(np.concatenate((np.array([2,Lambda0]),np.zeros(len(node)-2)),axis=0)))
-    dmatrix.append((((value[1]-value[0])-boundary1)/(node[1]-node[0]))/(node[1]-node[0]))
+    Mmatrix.append(list(np.concatenate((np.array([2,0]),np.zeros(len(node)-2)),axis=0)))
+    dmatrix.append(0)#(((value[1]-value[0])-boundary1)/(node[1]-node[0]))/(node[1]-node[0]))
     for i in range(1,len(node)-1):
         #Main matrix
         hi      =  node[i]-node[i-1]
@@ -69,21 +69,22 @@ def cubic_coefficient(node,value):
         dmatrix.append(f)
     mun=1
     #boundary
-    Mmatrix.append(list(np.concatenate((np.zeros(len(node) - 2),np.array([mun,2])), axis=0)))
-    dmatrix.append((boundary2-(value[-1] - value[-2]) / (node[-1] - node[-2])) / (node[-1] - node[-2]))
+    Mmatrix.append(list(np.concatenate((np.zeros(len(node) - 2),np.array([0,2])), axis=0)))
+    dmatrix.append(0)#(boundary2-(value[-1] - value[-2]) / (node[-1] - node[-2])) / (node[-1] - node[-2]))
     #solve for coefficients
     dmatrix = 6*np.array(dmatrix)
     coefficients = np.linalg.solve(Mmatrix,dmatrix)
     return coefficients
 
-def cubic_interpolator(coefficients, value, node, inter_value):
+
+def cubic_interpolator(coefficients, node, value, inter_node):
     # This function actually interpolates (1 point)
     # input Splinematrix from previous function, all nodes (1d array), intervalue (the point to be interpolated)
     nodenumber=0
     for i in node:
-        if inter_value<= i:  #inter_value>node[-2]: #check at which spline to interpolate
+        if inter_node<= i:  #inter_value>node[-2]: #check at which spline to interpolate
             break
-        if inter_value >= node[-2]:
+        if inter_node >= node[-2]:
             nodenumber = len(node)-1
             break
         else:
@@ -99,5 +100,15 @@ def cubic_interpolator(coefficients, value, node, inter_value):
     b =  coefficients[nodenumber]/(6*hi)
     c = coefficients[nodenumber-1]*hi*hi/6
     d = coefficients[nodenumber]*hi*hi/6
-    si = a*(xi-inter_value)**3+b*(inter_value-x_i)**3+(y_i-c)*(xi-inter_value)/hi+(yi-d)*(inter_value-x_i)/hi
+    si = a*(xi-inter_node)**3+b*(inter_node-x_i)**3+(y_i-c)*(xi-inter_node)/hi+(yi-d)*(inter_node-x_i)/hi
     return si
+
+
+
+node = [1,2,3,4,5]
+value = [2,4,6,4,0]
+inter_value = 1.05#
+coefficients = cubic_coefficients(node,value)
+
+a = cubic_interpolator(coefficients, node, value, inter_value)
+print(a)
