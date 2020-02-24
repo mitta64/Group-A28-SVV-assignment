@@ -43,15 +43,15 @@ def cubic_coefficients(node,value):
     #This way the main calculation only has to be done once, and spline_interpolator actually computes the value
     #input: nodes (1d list), value at these nodes (1dlist), boundary 1 (f'(0)=?),boundary 2 (f'(n)=?)
     #output Array containing Splinematrix
-    boundary1 = (value[1]-value[0])/(node[1]-node[0])
-    boundary2 = (value[-1]-value[-2])/(node[-1]-node[-2])
+    #boundary1 = (value[1]-value[0])/(node[1]-node[0])
+    #boundary2 = (value[-1]-value[-2])/(node[-1]-node[-2])
     # print(boundary1,boundary2)
     Mmatrix = []
     dmatrix = []
     Lambda0 = 1
     #boundary 1
-    Mmatrix.append(list(np.concatenate((np.array([2,Lambda0]),np.zeros(len(node)-2)),axis=0)))
-    dmatrix.append((((value[1]-value[0])-boundary1)/(node[1]-node[0]))/(node[1]-node[0]))
+    Mmatrix.append(list(np.concatenate((np.array([2,0]),np.zeros(len(node)-2)),axis=0)))
+    dmatrix.append(0)#(((value[1]-value[0])-boundary1)/(node[1]-node[0]))/(node[1]-node[0]))
     for i in range(1,len(node)-1):
         #Main matrix
         hi      =  node[i]-node[i-1]
@@ -69,8 +69,8 @@ def cubic_coefficients(node,value):
         dmatrix.append(f)
     mun=1
     #boundary
-    Mmatrix.append(list(np.concatenate((np.zeros(len(node) - 2),np.array([mun,2])), axis=0)))
-    dmatrix.append((boundary2-(value[-1] - value[-2]) / (node[-1] - node[-2])) / (node[-1] - node[-2]))
+    Mmatrix.append(list(np.concatenate((np.zeros(len(node) - 2),np.array([0,2])), axis=0)))
+    dmatrix.append(0)#(boundary2-(value[-1] - value[-2]) / (node[-1] - node[-2])) / (node[-1] - node[-2]))
     #solve for coefficients
     dmatrix = 6*np.array(dmatrix)
     coefficients = np.linalg.solve(Mmatrix,dmatrix)
@@ -103,12 +103,5 @@ def cubic_interpolator(coefficients, node, value, inter_node):
     si = a*(xi-inter_node)**3+b*(inter_node-x_i)**3+(y_i-c)*(xi-inter_node)/hi+(yi-d)*(inter_node-x_i)/hi
     return si
 
-#node = [1,2,3,4,5]
-#value = [2,4,6,8,10]
-#inter_value = 0.8
-#coefficients = cubic_coefficients(node,value)
-
-#a = cubic_interpolator(coefficients, node, value, inter_value)
-#print(a)
 
 
