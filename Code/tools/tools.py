@@ -200,11 +200,10 @@ class Aircraft(object):
         self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk
 
     #I_yy
-        steiner_boom_skin_yy = np.round(np.square(self.boom_skin_z_y_a[0,:]) * self.boom_skin_z_y_a[2,:], 7)
+        steiner_boom_skin_yy = np.square(self.boom_skin_z_y_a[0,:]-self.cent[0]) * self.boom_skin_z_y_a[2,:]
 
         Iyy_circ = (np.pi/8 - 8/(np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
         Iyy_spar = 0
-        l_sk     = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
         Iyy_sk   = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk))** 2 / 12
 
         self.Iyy = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk
@@ -352,6 +351,29 @@ class Aircraft(object):
                                          + (2 * (q0_1 - q0_2)) / (self.G * self.t_sp))
         # Torsional stiffness J
         self.J = 1 / (self.G * dtheta_dz)
+
+    def plot_aileron(self):
+        step_n = 100
+        theta_step =np.linspace(-np.pi/2,np.pi/2,step_n)
+        self.circ = np.row_stack(([np.cos(theta_step)*self.h/2- self.h/2],[np.sin(theta_step)*self.h/2])) #circ[[z],[y]]
+        self.spar = np.row_stack(([np.ones(step_n)* - self.h/2], [np.linspace(- self.h/2,self.h/2,step_n)]))
+        self.sk_up = np.row_stack(([np.linspace(-self.h/2,-(self.C_a),step_n)], [np.linspace(self.h/2,0,step_n)]))
+        self.sk_down = np.row_stack(([np.linspace(-self.h/2,-(self.C_a),step_n)], [np.linspace(-self.h/2,0,step_n)]))
+
+
+        plt.plot(self.circ[0,:],self.circ[1,:],'black',label = 'skin')
+        plt.plot(self.spar[0,:], self.spar[1,:],'blue',label = 'Spar')
+        plt.plot(self.sk_up[0,:], self.sk_up[1,:],'black')
+        plt.plot(self.sk_down[0,:], self.sk_down[1,:],'black')
+        plt.scatter(self.boom_loc_area[:,0],self.boom_loc_area[:,1],c = 'red',marker = 'D' , label = 'Stiffners')
+        plt.title(self.name )
+        plt.xlabel('z axes [m]')
+        plt.ylabel('y axes [m]')
+        plt.legend()
+        plt.grid()
+        plt.show()
+
+
     
         
             
@@ -823,9 +845,7 @@ def deflectionplot(func, length): # length = f100.C_a or f100.l_a
     plt.figure()
     plt.plot(xdata, funcdata)
     plt.show()
-    
-#def test_integral():
-    
+
 
 
 #unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
