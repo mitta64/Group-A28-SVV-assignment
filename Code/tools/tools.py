@@ -415,11 +415,17 @@ A320 = Aircraft("Airbus A320", 0.547, 2.771, 0.153, 1.281, 2.681, 28., 22.5, 1.1
 # Assign all required properties to one term
 # Replace 'f100' when analysing a different aircraft
 # ====================================================
-f100.booms()
-f100.centroid()
-f100.second_moi()
-f100.shear_centre()
-f100.torsional_stiffness()
+#f100.booms()
+#f100.centroid()
+#f100.second_moi()
+#f100.shear_centre()
+#f100.torsional_stiffness()
+
+A320.booms()
+A320.centroid()
+A320.second_moi()
+A320.shear_centre()
+A320.torsional_stiffness()
 # I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
 I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 0.00017531714118864135, f100.E,
      -0.08553893540215983]  # testing true data
