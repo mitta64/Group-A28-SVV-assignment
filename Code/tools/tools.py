@@ -476,7 +476,7 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
         ])
     b = np.array([[P*np.sin(alpha)+integral_z(2)],                              #Row 1
                   [P*np.cos(alpha)],                                            #Row 2
-                  [-P*np.cos(alpha)*h/2-integral_x(3)],                  #Row 3
+                  [-P*np.cos(alpha)*h/2-integral_x(3)],                         #Row 3
                   [P*np.cos(alpha)*Ksi_2],                                      #Row 4
                   [-P*np.sin(alpha)*Ksi_2-integral_z(3)],                       #Row 5
                   [Beta(x_1) + d1 * np.cos(alpha)],                             #Row 6
@@ -516,10 +516,11 @@ def indef_integral(f,x1,x2,res=10000):
     return solution
 
 
-""" This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
-Then, it calculates the indefinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
-res is the resolution. Higher value = more accurate, but longer runtime """
+
 def integral_z(n,x_final=1.611,z_sc=None,res=1000):
+    """ This calculates the n'th integral (with minimum of n=1). It is structured so that the program first calculates the definite integral from z=0 till z=C_a= -0.505.
+    Then, it calculates the indefinite integral along dx. The n'th integral (if n>=2) will than be the definite integral for x=0 till x=l_a=1.611
+    res is the resolution. Higher value = more accurate, but longer runtime """
     #--------------------- input data --------------------------------
     newgrid = copy.deepcopy(grid)
     """ boundaries of the integration """
