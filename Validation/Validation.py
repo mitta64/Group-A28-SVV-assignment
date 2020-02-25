@@ -1,10 +1,28 @@
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 #Get nodes
-node_coordinates          = np.genfromtxt("B737.inp",skip_header = 9,skip_footer=7996,delimiter=',')
-node_coordinates          = node_coordinates[:,1:4]
+Displ_coordinates          = np.genfromtxt("B737.inp",skip_header = 9,skip_footer=7996,delimiter=',')
 Boundarynode_coordinates  = np.genfromtxt("B737.inp",skip_header = 14146, comments = "*",skip_footer=180,delimiter=',')
-Boundarynode_coordinates  = Boundarynode_coordinates[:,1:4]
+Elements   = np.genfromtxt("B737.inp",skip_header = 6598,skip_footer=1361,delimiter=',')
+
+#averaging the element coordinate
+num = 1
+Mises_coordinates= []
+for i in Elements:
+    xyz1         = Displ_coordinates[int(i[1])-1]
+    xyz2         = Displ_coordinates[int(i[2])-1]
+    xyz3         = Displ_coordinates[int(i[3])-1]
+    xyz4         = Displ_coordinates[int(i[4])-1]
+    xcoord       =  (xyz1[1]+xyz2[1]+xyz3[1]+xyz4[1])/4
+    ycoord       = (xyz1[2]+xyz2[2]+xyz3[2]+xyz4[2])/4
+    zcoord       =  (xyz1[3]+xyz2[3]+xyz3[3]+xyz4[3])/4
+    node_element = [num , xcoord, ycoord,zcoord]
+    Mises_coordinates.append(node_element)
+    num         += 1
+Mises_coordinates = np.array(Mises_coordinates)
+
 
 #Get all values
 Mises_bending1    = np.genfromtxt("B737.rpt",skip_header=20, skip_footer = 59956-5799-165)
@@ -41,5 +59,22 @@ Mises_straight[:,2] = (Mises_straight[:,2]+Mises_straight[:,3])/2
 Mises_straight[:,4] = (Mises_straight[:,4]+Mises_straight[:,5])/2
 Mises_straight      = np.delete(Mises_straight,(1,3,5),axis=1)
 
-#
 
+
+#Creating one array of points:Vonmises:shear
+Mises_shear_bending = np.hstack((Mises_coordinates,Mises_bending))
+
+print(Mises_coordinates)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+xs = Mises_coordinates[:,1]
+ys = Mises_coordinates[:,2]
+zs = Mises_coordinates[:,3]
+ax.scatter(xs, ys, zs)
+
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+
+
+plt.show()
