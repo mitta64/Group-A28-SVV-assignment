@@ -4,7 +4,7 @@ import numpy as np
 node_coordinates          = np.genfromtxt("B737.inp",skip_header = 9,skip_footer=7996,delimiter=',')
 node_coordinates          = node_coordinates[:,1:4]
 Boundarynode_coordinates  = np.genfromtxt("B737.inp",skip_header = 14146, comments = "*",skip_footer=180,delimiter=',')
-
+Boundarynode_coordinates  = Boundarynode_coordinates[:,1:4]
 
 #Get all values
 Mises_bending1    = np.genfromtxt("B737.rpt",skip_header=20, skip_footer = 59956-5799-165)
@@ -30,5 +30,16 @@ Mises_Jam      = np.vstack((Mises_Jam1[0:1732],Mises_Jam2[0:409],Mises_Jam1[1732
 Mises_straight = np.vstack((Mises_straight1[0:1732],Mises_straight2[0:409],Mises_straight1[1732:3429],Mises_straight2[409:522],Mises_straight1[3429:4857],Mises_straight2[522:579],Mises_straight1[4857:5656],Mises_straight2[579:860],Mises_straight1[5656:5783]))
 
 #Average inside and outside von mises stresses/shear
-Mises_bending = np.delete(Mises_bending,1,axis=1)
-print(Mises_bending)
+#node, Von Mises, Shear
+Mises_bending[:,2]  = (Mises_bending[:,2]+Mises_bending[:,3])/2
+Mises_bending[:,4]  = (Mises_bending[:,4]+Mises_bending[:,5])/2
+Mises_bending       = np.delete(Mises_bending,(1,3,5),axis=1)
+Mises_Jam[:,2]      = (Mises_Jam[:,2]+Mises_Jam[:,3])/2
+Mises_Jam[:,4]      = (Mises_Jam[:,4]+Mises_Jam[:,5])/2
+Mises_Jam           = np.delete(Mises_Jam,(1,3,5),axis=1)
+Mises_straight[:,2] = (Mises_straight[:,2]+Mises_straight[:,3])/2
+Mises_straight[:,4] = (Mises_straight[:,4]+Mises_straight[:,5])/2
+Mises_straight      = np.delete(Mises_straight,(1,3,5),axis=1)
+
+#
+
