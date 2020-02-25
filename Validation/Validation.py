@@ -2,6 +2,9 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
+
+
+
 #Get nodes
 Displ_coordinates          = np.genfromtxt("B737.inp",skip_header = 9,skip_footer=7996,delimiter=',')
 Boundarynode_coordinates  = np.genfromtxt("B737.inp",skip_header = 14146, comments = "*",skip_footer=180,delimiter=',')
@@ -96,13 +99,18 @@ Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:
 #slice funtions
 
 
-"""
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 xs = Mises_coordinates[:,1]
 ys = Mises_coordinates[:,2]
 zs = Mises_coordinates[:,3]
-ax.scatter(xs, ys, zs)
+color  = np.transpose(Mises_shear_bending[:,5]/max(Mises_shear_bending[:,5]))
+colour =[]
+for i in color:
+    zzz = [i,0,1-i]
+    colour.append(zzz)
+print(max(color))
+ax.scatter(xs, ys, zs,color = colour)
 
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
@@ -110,4 +118,3 @@ ax.set_zlabel('Z Label')
 
 
 plt.show()
-"""
