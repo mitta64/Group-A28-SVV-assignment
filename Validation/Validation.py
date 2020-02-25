@@ -61,10 +61,26 @@ Mises_straight      = np.delete(Mises_straight,(1,3,5),axis=1)
 
 
 
-#Creating one array of points:Vonmises:shear
-Mises_shear_bending = np.hstack((Mises_coordinates,Mises_bending))
+########################################
 
-print(Mises_coordinates)
+#These are the final to be used arrays
+#ENTRY = [#node, x , y ,z , values]
+#Creating one array of points:Vonmises:shear
+Mises_shear_bending         = np.hstack((Mises_coordinates,Mises_bending[:,1:]))
+Mises_shear_Jam             = np.hstack((Mises_coordinates,Mises_Jam[:,1:]))
+Mises_shear_straight        = np.hstack((Mises_coordinates,Mises_straight[:,1:]))
+Displacement_bending        = np.hstack((Displ_coordinates,Displacement_bending1[:,1:]))
+Displacement_Jam            = np.hstack((Displ_coordinates,Displacement_Jam1[:,1:]))
+Displacement_straight       = np.hstack((Displ_coordinates,Displacement_straight1[:,1:]))
+Displacement_bending_nodes  = np.hstack((Boundarynode_coordinates,Displacement_bending_nodes[:,1:]))
+Displacement_Jam_nodes      = np.hstack((Boundarynode_coordinates,Displacement_Jam_nodes[:,1:]))
+Displacement_straight_nodes = np.hstack((Boundarynode_coordinates,Displacement_straight_nodes[:,1:]))
+Reaction_bending_nodes      = np.hstack((Boundarynode_coordinates,Reaction_bending_nodes[:,1:]))
+Reaction_Jam_nodes          = np.hstack((Boundarynode_coordinates,Reaction_Jam_nodes[:,1:]))
+Reaction_straight_nodes     = np.hstack((Boundarynode_coordinates,Reaction_straight_nodes[:,1:]))
+
+
+"""
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 xs = Mises_coordinates[:,1]
@@ -78,3 +94,4 @@ ax.set_zlabel('Z Label')
 
 
 plt.show()
+"""
