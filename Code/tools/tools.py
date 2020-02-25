@@ -129,7 +129,7 @@ class Aircraft(object):
         # Add stringers, starting at LE and going clockwise
         self.boom_loc_area = np.zeros(shape=(self.n_st, 3))
         # calc amount of stringers in arc
-        self.n_arc_half = int((np.pi / 2) / sel.angle_arc)
+        self.n_arc_half = int((np.pi / 2) / self.angle_arc)
         #print('n_arc', self.n_arc_half)
         # Add stringer in 0,0 arc
         self.boom_loc_area[0,:] = np.array([0,0,self.boom_area])
