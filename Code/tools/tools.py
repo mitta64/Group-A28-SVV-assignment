@@ -421,7 +421,7 @@ class Aircraft(object):
 
          # addaing spars
         self.qb[0, booms_triangle + 1] += q0_2 + q0_1
-        self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 1] += q0_2 = q0_1
+        self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 1] += q0_2 + q0_1
 
 
 
