@@ -14,34 +14,38 @@ import copy
 # =======================================================================================
 "Class containing all Aircraft data"
 
+
 class Aircraft(object):
+
+
     def __init__(self, name, C_a, l_a, x_1, x_2, x_3, x_a, h,
                  t_sk, t_sp, t_st, h_st, w_st, n_st, d_1, d_3, theta, P):
-        self.name   = name
-        self.C_a    = C_a                   # "Chord length aileron[m]"
-        self.l_a    = l_a                   # "Span of the aileron[m]"
-        self.x_1    = x_1                   # "x-location of hinge 1 [m]"
-        self.x_2    = x_2                   # "x-location of hinge 2 [m]"
-        self.x_3    = x_3                   # "x-location of hinge 3 [m]"
-        self.x_a    = round(x_a / 100, 8)   # "Distance between actuator 1 and 2 [m]"
-        self.h      = round(h / 100, 8)     # "Aileron height[m]"
-        self.t_sk   = round(t_sk / 1000, 8) # "Skin thickness [m]"
-        self.t_sp   = round(t_sp / 1000, 8) # "Spar thickness [m]"
-        self.t_st   = round(t_st / 1000, 8) # "Thickness of stiffener[m]"
-        self.h_st   = round(h_st / 100, 8)  # "Height of stiffener[m]"
-        self.w_st   = round(w_st / 100, 8)  # "Width of stiffener[m]"
-        self.n_st   = n_st                  # "Number of stiffeners [-]"
-        self.d_1    = round(d_1 / 100, 8)   # "Vertical displacement hinge 1[m]"
-        self.d_3    = round(d_3 / 100, 8)   # "Vertical displacement hinge 3[m]"
-        self.theta  = theta                 # "Maximum upward deflection[deg]"
-        self.P      = round(P * 1000, 8)     # "Load in actuator 2[N]"
+        self.name = name
+        self.C_a = C_a  # "Chord length aileron[m]"
+        self.l_a = l_a  # "Span of the aileron[m]"
+        self.x_1 = x_1  # "x-location of hinge 1 [m]"
+        self.x_2 = x_2  # "x-location of hinge 2 [m]"
+        self.x_3 = x_3  # "x-location of hinge 3 [m]"
+        self.x_a = round(x_a / 100, 8)  # "Distance between actuator 1 and 2 [m]"
+        self.h = round(h / 100, 8)  # "Aileron height[m]"
+        self.t_sk = round(t_sk / 1000, 8)  # "Skin thickness [m]"
+        self.t_sp = round(t_sp / 1000, 8)  # "Spar thickness [m]"
+        self.t_st = round(t_st / 1000, 8)  # "Thickness of stiffener[m]"
+        self.h_st = round(h_st / 100, 8)  # "Height of stiffener[m]"
+        self.w_st = round(w_st / 100, 8)  # "Width of stiffener[m]"
+        self.n_st = n_st  # "Number of stiffeners [-]"
+        self.d_1 = round(d_1 / 100, 8)  # "Vertical displacement hinge 1[m]"
+        self.d_3 = round(d_3 / 100, 8)  # "Vertical displacement hinge 3[m]"
+        self.theta = theta  # "Maximum upward deflection[deg]"
+        self.P = round(P * 1000, 8)  # "Load in actuator 2[N]"
 
         # Material properties
-        self.G      = 27.1 * 10**9          #"Shear Modulus of Aluminium 2024-T3 [Pa]"
-        self.E      = 72.9 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa]"
-
+        self.G      = 28 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa]"
+        self.E      = 73.1 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa]"
     def description(self):
+
         prop = vars(self)
+
         for i in prop.keys():
             print(str(i) + "=" + '\t' + str(prop[i]))
 
@@ -209,20 +213,21 @@ class Aircraft(object):
     # ========================
     def second_moi(self):
         # I_zz
-        steiner_boom_skin_zz    = np.square(self.boom_skin_z_y_a[1, :]) * self.boom_skin_z_y_a[2, :]
-        Izz_circ                = np.pi * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4) / 8
-        Izz_spar                = self.h ** 3 * self.t_sp / 12
-        l_sk                    = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
-        Izz_sk                  = (l_sk) ** 3 * self.t_sk * ((self.h / 2) / (l_sk)) ** 2 / 12
-        self.Izz                = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk*2
+        steiner_boom_skin_zz = np.square(self.boom_skin_z_y_a[1, :]) * self.boom_skin_z_y_a[2, :]
+        Izz_circ = np.pi * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4) / 8
+        Izz_spar = self.h ** 3 * self.t_sp / 12
+        l_sk = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
+        Izz_sk = (l_sk) ** 3 * self.t_sk * ((self.h / 2) / (l_sk)) ** 2 / 12
+
+        self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk*2
 
         # I_yy
-        steiner_boom_skin_yy    = (np.square(self.boom_skin_z_y_a[0, :] 
-                           - self.cent[0]) * self.boom_skin_z_y_a[2, :])
+        steiner_boom_skin_yy = np.square(self.boom_skin_z_y_a[0, :] - self.cent[0]) * self.boom_skin_z_y_a[2, :]
 
         Iyy_circ = (np.pi / 8 - 8 / (np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
         Iyy_spar = 0
         Iyy_sk = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk)) ** 2 / 12
+
         self.Iyy = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk*2
 
         # I_xy
@@ -263,94 +268,162 @@ class Aircraft(object):
         #         self.boom_area * a[10,1])
         'New method'
         # Define theta values
-        theta_7 = math.atan(a[10,0] / a[10,1])
+        theta_7 = -(np.pi/2 - self.angle_arc * self.n_arc_half)
         theta = (np.pi / 2) - theta_7
         theta_8 = 0
-        theta_9 = math.atan(a[1,0] / a[1,1])
-        s12 = L_sk - (3.5) * self.boom_spacing
+        theta_9 = -theta_7
+        booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
+        s12 = L_sk - (booms_triangle - 0.5) * self.boom_spacing
         s10 = self.boom_spacing - s12
         s5 = s12
         
-        # Shear flow bottom triangle
-        qb_1 = (-1/self.Izz) * ((-self.t_sk * h * (0.5 * self.boom_spacing)**2) / (2 * L_sk))
-        qb_2 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[6,1]) + qb_1
-        qb_3 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[7,1]) + qb_2
-        qb_4 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[8,1]) + qb_3
-        qb_5 = (-1/self.Izz) * ((-self.t_sk * h * (s5)**2) / (2 * L_sk) + self.boom_area * a[9,1]) + qb_4
+        # Number of booms in the bottom triangle,
+        # which is equal to the number of booms in the top triangle
+       
+        x = 0
         
+        # Shear flow bottom triangle
+        start = int(((self.n_st - 1) / 2) )
+        self.qb = np.zeros(shape = (1, (self.n_st + 5) ))
+        qb_1 = (-1/self.Izz) * ((-self.t_sk * h * (0.5 * self.boom_spacing)**2) / (2 * L_sk))
+        print(x,'start')
+        x += 1
+        self.qb[0, 0] = qb_1
+        for i in range(1, booms_triangle):
+            self.qb[0,i]= (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[start + i,1]) + self.qb[0, i-1]
+            # qb_2 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[6,1]) + qb_1
+            # qb_3 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[7,1]) + qb_2
+            # qb_4 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[8,1]) + qb_3
+            print(x,'1st loop')
+            x += 1
+        qb_5 = (-1/self.Izz) * ((-self.t_sk * h * (s5)**2) / (2 * L_sk) + self.boom_area * a[start + booms_triangle,1]) + self.qb[0, booms_triangle - 1]
+        self.qb[0, booms_triangle] = qb_5
+        print(x, 'qb_5')
+        x += 1
         # Shear flow spar
         qb_6 = (-1/self.Izz) * ((self.t_sp * (h)**2) / (2))
-        qb_11 = qb_6
+        self.qb[0, booms_triangle + 1] = qb_6
+        print(x, 'qb_6')
+        x += 1
         
         # Shear flow semi-circle
-        qb_7 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((-np.pi / 2) + theta_7))) + qb_5 - qb_6
-        qb_8 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos(theta_8) + np.cos((-np.pi / 2) + theta_7)) + self.boom_area * a[10,1]) + qb_7
-        qb_9 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((np.pi / 2) - theta_9) + np.cos(theta_8))) + qb_8
-        qb_10 = (-1/self.Izz) * (self.t_sk * (h)**2 * ( np.cos((np.pi / 2) - theta_9)) + self.boom_area * a[1,1]) + qb_9        
         
+        
+        qb_7 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos( theta_7))) + self.qb[0, booms_triangle]- self.qb[0, booms_triangle + 1]
+        self.qb[0, booms_triangle + 2] = qb_7
+        print(x, 'qb_7')
+        x += 1
+        runs = 1
+        start = start + booms_triangle + 1
+        for i in range(booms_triangle + 3,booms_triangle + 3 + self.n_arc_half):
+            self.qb[0, i] = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos(self.angle_arc*self.n_arc_half-(runs)* self.angle_arc) + np.cos( theta_7) + self.boom_area * a[start ,1])) + self.qb[0, i-1]
+            start += 1
+            runs += 1
+            print(x,'2nd loop')
+            x += 1
+        
+        start = 0
+        runs = 0
+        for i in range(booms_triangle + 3 + self.n_arc_half, booms_triangle + 3 + 2 * self.n_arc_half):
+            self.qb[0, i] = (-1/self.Izz) * (self.t_sk * (h)**2 * ( -np.cos((runs + 1) * self.angle_arc) + np.cos(runs * self.angle_arc)) + self.boom_area * a[start,1]) + self.qb[0, i-1]
+            start += 1
+            runs += 1
+            print(x,'3rd loop')
+            x += 1
+        # qb_8 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos(theta_8) + np.cos((-np.pi / 2) + theta_7)) + self.boom_area * a[10,1]) + qb_7
+        # qb_9 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((np.pi / 2) - theta_9) + np.cos(theta_8))) + qb_8
+        qb_10 = (-1/self.Izz) * (self.t_sk * (h)**2 * ( np.cos((np.pi / 2) - theta_9)) + self.boom_area * a[start,1]) + self.qb[0,  booms_triangle + 3 + 2 * self.n_arc_half -1]        
+        self.qb[0,  booms_triangle + 3 + 2 * self.n_arc_half] = qb_10
+        print(x, 'qb_10')
+        x += 1
+        # Shear flow spar
+        qb_11 = qb_6
+        self.qb[0,  booms_triangle + 3 + 2 * self.n_arc_half + 1] = qb_11
+        print(x, 'qb_11')
+        x += 1
         # Shear flow top triangle
-        qb_12 = (-1/self.Izz) * (self.t_sk * h * (s12 - ((s12)**2 / (2 * L_sk)))) + qb_10 + qb_11
-        qb_13 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[2,1]) + qb_12
-        qb_14 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[3,1]) + qb_13
-        qb_15 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[4,1]) + qb_14
-        qb_16 = (-1/self.Izz) * (self.t_sk * h * ((0.5 * self.boom_spacing) - ((0.5 * self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[5,1]) + qb_15
-
-        
-        # Redundant shear flow in left & right cell
-        # Computed by using matrices and solving for x
-        # q0_1 = x[0], q0_2 = x[1]
+        qb_12 = (-1/self.Izz) * (self.t_sk * h * (s12 - ((s12)**2 / (2 * L_sk)))) + self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half ] + self.qb[0,  booms_triangle + 3 + 2 * self.n_arc_half + 1]
+        self.qb[0,  booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_12
+        print(x, 'qb_12')
+        x += 1
+        for i in range(booms_triangle + 3 + 2 * self.n_arc_half + 3, 2*booms_triangle + 3 + 2 * self.n_arc_half + 2):
+            self.qb[0, i] = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[start,1]) + self.qb[0, i-1]
+            start += 1
+            print(x,'4th loop')
+            x += 1
+        # qb_13 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[2,1]) + qb_12
+        # qb_14 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[3,1]) + qb_13
+        # qb_15 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[4,1]) + qb_14
+        qb_16 = (-1/self.Izz) * (self.t_sk * h * ((0.5 * self.boom_spacing) - ((0.5 * self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[start,1]) + self.qb[0,2*booms_triangle + 3 + 2 * self.n_arc_half + 2 -1 ]
+        self.qb[0, 2*booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_16
+        print(x,'qb_16')
+            
+        # # Redundant shear flow in left & right cell
+        # # Computed by using matrices and solving for x
+        # # q0_1 = x[0], q0_2 = x[1]
         A = np.array([[(1/(np.pi * h**2)) * ((np.pi * h) / (self.G * self.t_sk) + 
                                                     (2 * h)/ (self.G * self.t_sp)),
                         (-1/(np.pi * h**2)) * (2 * h) / (self.G * self.t_sp)], 
                       [((-1)/ (2 * h * (self.C_a - h))) * (2 * h) / (self.G * self.t_sp),
                         ((1) / (2 * h * (self.C_a - h))) * ((2 * h) / (self.G * self.t_sp) +
                                                     (2 * L_sk) / (self.G * self.t_sk))]])
-        b = np.array([[((-1) / (np.pi * h**2)) * ((qb_7 * theta_7 * h) / (self.G * self.t_sk) +
-                                                  (qb_8 * theta * h) / (self.G * self.t_sk) +
-                                                  (qb_9 * theta * h) / (self.G * self.t_sk) +
-                                                  (qb_10 * theta_7 * h) / (self.G * self.t_sk) -
-                                                  (qb_11 * h) / (self.G * self.t_sp) -
-                                                  (qb_6 * h) / (self.G * self.t_sp))],
-                      [((-1) / (2 * h * (self.C_a - h))) * ((qb_12 * s12) / (self.G * self.t_sk) +
-                                (qb_13 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_14 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_15 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_16 * 0.5 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_1 * 0.5 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_2 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_3 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_4 * self.boom_spacing) / (self.G * self.t_sk) +
-                                (qb_5 * s5) / (self.G * self.t_sk) +
-                                (qb_6 * h) / (self.G * self.t_sp) +
-                                (qb_11 * h) / (self.G * self.t_sp))]])
+        'Old method'
+        # b = np.array([[((-1) / (np.pi * h**2)) * ((qb_7 * theta_7 * h) / (self.G * self.t_sk) +
+        #                                           (qb_8 * theta * h) / (self.G * self.t_sk) +
+        #                                           (qb_9 * theta * h) / (self.G * self.t_sk) +
+        #                                           (qb_10 * theta_7 * h) / (self.G * self.t_sk) -
+        #                                           (qb_11 * h) / (self.G * self.t_sp) -
+        #                                           (qb_6 * h) / (self.G * self.t_sp))],
+        #               [((-1) / (2 * h * (self.C_a - h))) * ((qb_12 * s12) / (self.G * self.t_sk) +
+        #                         (qb_13 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_14 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_15 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_16 * 0.5 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_1 * 0.5 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_2 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_3 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_4 * self.boom_spacing) / (self.G * self.t_sk) +
+        #                         (qb_5 * s5) / (self.G * self.t_sk) +
+        #                         (qb_6 * h) / (self.G * self.t_sp) +
+        #                         (qb_11 * h) / (self.G * self.t_sp))]])
+        'New method'
+        b2 = (self.qb[0,0]*self.boom_spacing*0.5 +
+              np.sum[self.qb[0,1:booms_triangle]] * self.boom_spacing +
+              s5 * self.qb[0, booms_triangle] +
+              s12 * self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 2] +
+              self.boom_spacing * np.sum(self.qb[0,booms_triangle + 3 + 2 * self.n_arc_half + 3: 2*booms_triangle + 3 + 2 * self.n_arc_half + 2]) +
+              0.5 * self.boom_spacing * self.qb[0, 2*booms_triangle + 3 + 2 * self.n_arc_half + 2]) / (self.G * self.t_sk) + (qb_6 * h + qb_11 * h)/ (self.G * self.t_sp)
+        
+        b1 = - (qb_6 * h + qb_11 * h)/ (self.G * self.t_sp) + (abs(theta_7)*h*qb_7 + np.sum(self.qb[0,booms_triangle + 3:booms_triangle + 3 + 2 * self.n_arc_half])*self.boom_spacing+ qb_10 * abs(theta_7) * h)/(self.G * self.t_sk)
+        b = np.array([[b1], [b2]])
         self.x = np.matmul(np.transpose(A), b)
         q0_1 = self.x[0]
         q0_2 = self.x[1]
-        #print(qb_1, qb_2, qb_3, qb_4, qb_5, qb_6, qb_7, qb_8, qb_9, qb_10, qb_11, qb_12, qb_13, qb_14, qb_15, qb_16)
+        # #print(qb_1, qb_2, qb_3, qb_4, qb_5, qb_6, qb_7, qb_8, qb_9, qb_10, qb_11, qb_12, qb_13, qb_14, qb_15, qb_16)
         
-        # # qs = qb + qs_0
-        qs_1 = qb_1 + q0_2
-        qs_2 = qb_2 + q0_2 
-        qs_3 = qb_3 + q0_2
-        qs_4 = qb_4 + q0_2
-        qs_5 = qb_5 + q0_2
-        qs_6 = qb_6 + q0_2 + q0_1
-        qs_7 = qb_7 + q0_1
-        qs_8 = qb_8 + q0_1
-        qs_9 = qb_9 + q0_1
-        qs_10 = qb_10 + q0_1
-        qs_11 = qb_7 + q0_2 + q0_1
-        qs_12 = qb_12 + q0_2
-        qs_13 = qb_13 + q0_2
-        qs_14 = qb_14 + q0_2
-        qs_15 = qb_15 + q0_2
-        qs_16 = qb_16 + q0_2
-        # Shear Centre z and y location (due to symmetry y = 0)
-        self.shear_centre_z = (-1) * ((((qs_7 * theta_7 * h) + (qs_8 * theta * h) + (qs_9 * theta * h) + (qs_10 * theta_7 * h)) * h) +
-                                      (((qs_12 * s12) + (qs_13 * self.boom_spacing) + (qs_14 * self.boom_spacing) + (qs_15 * self.boom_spacing) + (qs_16 * 0.5 * self.boom_spacing)) * np.cos(alpha) * h) +
-                                      (((qs_1 * 0.5 * self.boom_spacing) + (qs_2 * self.boom_spacing) + (qs_3 * self.boom_spacing) + (qs_4 * self.boom_spacing) + (qs_5 * s5)) * np.cos(alpha) * h)) - h 
+        # # # qs = qb + qs_0
+        # qs_1 = qb_1 + q0_2
+        # qs_2 = qb_2 + q0_2 
+        # qs_3 = qb_3 + q0_2
+        # qs_4 = qb_4 + q0_2
+        # qs_5 = qb_5 + q0_2
+        # qs_6 = qb_6 + q0_2 + q0_1
+        # qs_7 = qb_7 + q0_1
+        # qs_8 = qb_8 + q0_1
+        # qs_9 = qb_9 + q0_1
+        # qs_10 = qb_10 + q0_1
+        # qs_11 = qb_7 + q0_2 + q0_1
+        # qs_12 = qb_12 + q0_2
+        # qs_13 = qb_13 + q0_2
+        # qs_14 = qb_14 + q0_2
+        # qs_15 = qb_15 + q0_2
+        # qs_16 = qb_16 + q0_2
+        # # Shear Centre z and y location (due to symmetry y = 0)
+        # self.shear_centre_z = (-1) * ((((qs_7 * theta_7 * h) + (qs_8 * theta * h) + (qs_9 * theta * h) + (qs_10 * theta_7 * h)) * h) +
+        #                               (((qs_12 * s12) + (qs_13 * self.boom_spacing) + (qs_14 * self.boom_spacing) + (qs_15 * self.boom_spacing) + (qs_16 * 0.5 * self.boom_spacing)) * np.cos(alpha) * h) +
+        #                               (((qs_1 * 0.5 * self.boom_spacing) + (qs_2 * self.boom_spacing) + (qs_3 * self.boom_spacing) + (qs_4 * self.boom_spacing) + (qs_5 * s5)) * np.cos(alpha) * h)) - h 
                                 
-        self.shear_centre_y = 0                                          
+        # self.shear_centre_y = 0                                          
     #================================ 
     #Compute Shear Flow At Any Point
     #=================================
@@ -484,7 +557,31 @@ class Aircraft(object):
             plt.grid()
             plt.show()
 
+# =======================================================================================
+f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1, 2.4, 1.2, 1.3, 1.7, 11, 0.389, 1.245,
+                30, 49.2)
+A320 = Aircraft("Airbus A320", 0.547, 2.771, 0.153, 1.281, 2.681, 28., 22.5, 1.1, 2.9, 1.2, 1.5, 2., 17, 1.103, 1.642,
+                26., 91.7)
 
+# ====================================================
+# Assign all required properties to one term
+# Replace 'f100' when analysing a different aircraft
+
+# ====================================================
+f100.booms()
+f100.centroid()
+f100.second_moi()
+f100.shear_centre()
+f100.torsional_stiffness()
+#I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+#=======================================================================================
+
+# I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E,
+     -0.08553893540215983]  # testing true data
+
+
+# =======================================================================================
 
 
 def macaulay(x, x_n, pwr=1):
@@ -837,11 +934,13 @@ def plot(data, thing_to_plot, unit):
     plt.xlabel('span (m)')
     plt.ylabel(thing_to_plot + ' (' + unit + ')')
     plt.show()
+    return ()
+
 
 """ how to use """
-# func = np.sin(np.linspace(0, 10, 100))
-# thing = 'deflection'
-# unit = 'm'
+func = np.sin(np.linspace(0, 10, 100))
+thing = 'deflection'
+unit = 'm'
 # plot(func, thing, unit)
 
 # """ How to use: """
@@ -860,103 +959,105 @@ def plot(data, thing_to_plot, unit):
 # plt.show()
 # ugly code just for testing results
 
+"From here it's just random testing to check validity of our model using values from verif. model"
+unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
 
-def v_deflection(x, unknowns, aircraft):
-    Kz      = (1/(aircraft.E*aircraft.Izz))
-    P       = aircraft.P
-    x1      = aircraft.x_1
-    x2      = aircraft.x_2
-    x3      = aircraft.x_3
-    xa      = aircraft.x_a
-    ksi1    = x2 - xa / 2
-    ksi2    = x2 + xa / 2
-    alpha   = math.radians(aircraft.theta)
+def v_deflection(x):
+    Kz    = (1/(f100.E*I[0]))
+    P = f100.P
+    x1 = f100.x_1
+    x2 = f100.x_2
+    x3 = f100.x_3
+    xa = f100.x_a
+    ksi1 = x2 - xa / 2
+    ksi2 = x2 + xa / 2
+    alpha = math.radians(f100.theta)
 
     R1y = unknowns[0][0]
     R2y = unknowns[1][0]
     R3y = unknowns[2][0]
-    Ri  = unknowns[6][0]
-    C1  = unknowns[7][0]
-    C2  = unknowns[8][0]
-    v   = Kz*((R1y/6*macaulay(x,x1,3) + 
-               R2y/6*macaulay(x,x2,3) + 
-               R3y/6*macaulay(x,x3,3) + 
-               Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) - 
-               P*np.sin(alpha)/6*macaulay(x,ksi2,3) - 
-               integral_z(5,x)) +C1*x + C2)
+    Ri = unknowns[6][0]
+    C1 = unknowns[7][0]
+    C2 = unknowns[8][0]
+    v = Kz* (R1y/6*macaulay(x,x1,3) + R2y/6*macaulay(x,x2,3) + R3y/6*macaulay(x,x3,3) + Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) - P*np.sin(alpha)/6*macaulay(x,ksi2,3) - integral_z(5,x)) +C1*x + C2
+    
+
     return v
 
 
-def w_deflection(x, unknowns):
-    Ky      = 1/(f100.E * I[1])
-    P       = f100.P
-    x1      = f100.x_1
-    x2      = f100.x_2
-    x3      = f100.x_3
-    xa      = f100.x_a
-    ksi1    = x2 - xa / 2
-    ksi2    = x2 + xa / 2
-    alpha   = math.radians(f100.theta)
+def w_deflection(x):
+    Ky = 1/(f100.E * I[1])
+    P = f100.P
+    x1 = f100.x_1
+    x2 = f100.x_2
+    x3 = f100.x_3
+    xa = f100.x_a
+    ksi1 = x2 - xa / 2
+    ksi2 = x2 + xa / 2
+    alpha = math.radians(f100.theta)
 
     R1z = unknowns[3][0]
     R2z = unknowns[4][0]
     R3z = unknowns[5][0]
-    Ri  = unknowns[6][0]
-    C3  = unknowns[9][0]
-    C4  = unknowns[10][0]
-    w   = Ky *((R1z / 6 * macaulay(x, x1, 3) + 
-                R2z / 6 * macaulay(x, x2, 3) + 
-                R3z / 6 * macaulay(x, x3, 3) + 
-                Ri * np.cos(alpha) / 6 * macaulay(x, ksi1, 3) - 
-                P * np.cos(alpha) / 6 * macaulay(x, ksi2, 3)) + 
-                C3 * x + C4)
+    Ri = unknowns[6][0]
+    C3 = unknowns[9][0]
+    C4 = unknowns[10][0]
+    w = Ky * (R1z / 6 * macaulay(x, x1, 3) + R2z / 6 * macaulay(x, x2, 3) + R3z / 6 * macaulay(x, x3, 3) + Ri * np.cos(
+        alpha) / 6 * macaulay(x, ksi1, 3) - P * np.cos(alpha) / 6 * macaulay(x, ksi2, 3)) + C3 * x + C4
+
     return w
 
 
-def twist(x, unknowns):
-    L       = 1/(I[2]*I[3])
-    zsc     = I[-1]
-    P       = f100.P
-    h       = f100.h
-    x1      = f100.x_1
-    x2      = f100.x_2
-    x3      = f100.x_3
-    xa      = f100.x_a
-    ksi1    = x2 - xa / 2
-    ksi2    = x2 + xa / 2
-    alpha   = math.radians(f100.theta)
-    eta     = -h/2 - zsc
+def twist(x):
+    L = 1/(I[2]*I[3])
+    zsc = I[-1]
+    P = f100.P
+    h = f100.h
+    x1 = f100.x_1
+    x2 = f100.x_2
+    x3 = f100.x_3
+    xa = f100.x_a
+    ksi1 = x2 - xa / 2
+    ksi2 = x2 + xa / 2
+    alpha = math.radians(f100.theta)
+
+    eta = -h/2 - zsc
+    
+
+
+
 
     R1y = unknowns[0][0]
     R2y = unknowns[1][0]
     R3y = unknowns[2][0]
-    Ri  = unknowns[6][0]
-    C5  = unknowns[-1][0]
+    Ri = unknowns[6][0]
+
+    C5 = unknowns[-1][0]
     
     twist = -1*( L* ( eta*R1y*macaulay(x,x1,1) 
-                    + eta*R2y*macaulay(x,x2,1) 
-                    + eta*R3y*macaulay(x,x3,1) 
-                    - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) 
-                    - h/2*Ri*np.cos(alpha)*macaulay(x,ksi1,1) 
-                    + zsc*P*np.sin(alpha)*macaulay(x,ksi2,1) 
-                    + h/2*P*np.cos(alpha)*macaulay(x,ksi2,1) 
-                    + integral_z(3,x_final=x,z_sc=zsc) ) 
-                    + C5 )
+    + eta*R2y*macaulay(x,x2,1) 
+    + eta*R3y*macaulay(x,x3,1) 
+    - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) 
+    - h/2*Ri*np.cos(alpha)*macaulay(x,ksi1,1) 
+    + zsc*P*np.sin(alpha)*macaulay(x,ksi2,1) 
+    + h/2*P*np.cos(alpha)*macaulay(x,ksi2,1) 
+    + integral_z(3,x_final=x,z_sc=zsc) ) 
+    + C5 )
+    
+
     return twist
 
 
-def v_globaldeflection(x,unknowns):
-    alpha       = math.radians(f100.theta)
-    h           = f100.h
-    zsc         = I[-1]
-    eta         = -h/2 - zsc
-    v_global    = (v_deflection(x)/np.cos(alpha) - 
-                   w_deflection(x)/np.sin(alpha) + 
-                   eta*twist(x))
+def v_globaldeflection(x):
+    alpha = math.radians(f100.theta)
+    h = f100.h
+    zsc = I[-1]
+    eta = -h/2 - zsc
+    v_global = v_deflection(x)/np.cos(alpha) - w_deflection(x)/np.sin(alpha) + eta*twist(x)
     return v_global
     
     
-def deflectionplot(func, length, totalnodes, unknowns): # length f100.l_a
+def deflectionplot(func, length, totalnodes): # length f100.l_a
     funcdata = [] # y(x)
     xdata = np.linspace(0,length,totalnodes)
     for i in xdata:
