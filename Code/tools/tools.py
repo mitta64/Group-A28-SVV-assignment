@@ -434,8 +434,7 @@ class Aircraft(object):
         # Torsional stiffness J
         self.J = 1 / (self.G * dtheta_dz)
 
-    def plot_aileron(self):
-        step_n = 100
+    def plot_aileron(self, plot=True,step_n = 100):
         theta_step = np.linspace(-np.pi / 2, np.pi / 2, step_n)
         self.circ = np.row_stack(
             ([np.cos(theta_step) * self.h / 2 - self.h / 2], [np.sin(theta_step) * self.h / 2]))  # circ[[z],[y]]
@@ -444,26 +443,31 @@ class Aircraft(object):
             ([np.linspace(-self.h / 2, -(self.C_a), step_n)], [np.linspace(self.h / 2, 0, step_n)]))
         self.sk_down = np.row_stack(
             ([np.linspace(-self.h / 2, -(self.C_a), step_n)], [np.linspace(-self.h / 2, 0, step_n)]))
+        self.lines   = np.hstack((self.circ, self.spar, self.sk_up, self.sk_down))
 
-        plt.plot(self.circ[0, :], self.circ[1, :], 'black', label='skin')
-        plt.plot(self.spar[0, :], self.spar[1, :], 'blue', label='Spar')
-        plt.plot(self.sk_up[0, :], self.sk_up[1, :], 'black')
-        plt.plot(self.sk_down[0, :], self.sk_down[1, :], 'black')
-        plt.scatter(self.boom_loc_area[:, 0], self.boom_loc_area[:, 1], c='red', marker='D', label='Stiffners')
-        plt.title(self.name)
-        plt.xlabel('z axes [m]')
-        plt.ylabel('y axes [m]')
-        plt.legend()
-        plt.gca().invert_xaxis()
-        plt.grid()
-        plt.show()
 
-    def bending_stress(self, My, Mz):
-        pass
+        if plot:
+            plt.plot(self.circ[0, :], self.circ[1, :], 'black', label='skin')
+            plt.plot(self.spar[0, :], self.spar[1, :], 'blue', label='Spar')
+            plt.plot(self.sk_up[0, :], self.sk_up[1, :], 'black')
+            plt.plot(self.sk_down[0, :], self.sk_down[1, :], 'black')
+            plt.scatter(self.boom_loc_area[:, 0], self.boom_loc_area[:, 1], c='red', marker='D', label='Stiffners')
+            plt.title(self.name)
+            plt.xlabel('z axes [m]')
+            plt.ylabel('y axes [m]')
+            plt.legend()
+            plt.gca().invert_xaxis()
+            plt.grid()
+            plt.show()
+
+    def bending_stress(self, My, Mz, plot=False):
+        self.plot_aileron(plot=False)
+        stress      = lambda z, y:My/self.Iyy*z + Mz/self.Izz*y
+        self.sigma  = stress(self.lines[0],self.lines[1])
 
         if plot:
             plt.subplot(111,aspect='equal')
-            points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='hsv')
+            points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='hsv', label = 'Stress[Mpa]')
             plt.colorbar(points)
             plt.title(self.name )
             plt.xlabel('z axes [m]')
