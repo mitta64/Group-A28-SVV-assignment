@@ -40,9 +40,8 @@ class Aircraft(object):
         self.P = round(P * 1000, 8)  # "Load in actuator 2[N]"
 
         # Material properties
-        self.G = 27.1 * 10 ** 9  # "Shear Modulus of Aluminium 2024-T3 [Pa] is 28"
-        self.E = 72.9 * 10 ** 9  # "Elasticity Modulus of Aluminium 2024-T3 [Pa] is 71.1"
-
+        self.G      = 27.1 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa]"
+        self.E      = 72.9 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa]"
     def description(self):
 
         prop = vars(self)
@@ -125,11 +124,11 @@ class Aircraft(object):
         # Compute boom spacing
         self.boom_spacing = aileron_circumference / self.n_st
 
-        # Compute orientation stringer in semi-circle & triangular section
+        # Compute orientation stringer in semi-circle & triangular section      
         angle_arc = (self.boom_spacing / (self.h / 2))
-        angle_triangle = (math.atan((self.h / 2) / (self.C_a - (self.h / 2))))
-
-        # Start array with Col 1 z coordinate & Col 2 y coordinate
+        angle_triangle = (math.atan((self.h /2) / (self.C_a - (self.h /2))))                                                
+        
+        # Start array with Col 1 z coordinate & Col 2 y coordinate 
         # Add stringers, starting at LE and going clockwise
         self.boom_loc_area = np.zeros(shape=(self.n_st, 3))
         # calc amount of stringers in arc
@@ -238,61 +237,121 @@ class Aircraft(object):
     # Compute Shear Centre
     # ========================
     def shear_centre(self):
-
+               
         # Radius of semi-cirle
         h = self.h / 2
         # Length of triangular section
         L_sk = math.sqrt((self.C_a - h) ** 2 + h ** 2)
         # Angle at TE of ONE triangular section
         alpha = math.atan((h) / (self.C_a - (h)))
+        
         # Self.boom_loc_area becomes "a" for simplicity
         a = self.boom_loc_area
 
         # Shear flows [N/m]
+        'Old method'
         # Shear flow in bottom triangular section
-        qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk / 2) +
-                                  self.boom_area * a[6, 1] + self.boom_area * a[7, 1] +
-                                  self.boom_area * a[8, 1] + self.boom_area * a[9, 1])
-        # Shear flow in bottom part spar
-        qb_4 = (-1 / self.Izz) * (self.t_sp * h ** 2 / 2)
-        # Shear flow in semi-circle
-        qb_5 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk / 2) +
-                                  - self.t_sp * h ** 2 / 2 + self.boom_area * a[1, 1] +
-                                  self.boom_area * a[6, 1] + self.boom_area * a[7, 1] +
-                                  self.boom_area * a[8, 1] + self.boom_area * a[9, 1] +
-                                  self.boom_area * a[10, 1])
-        # Shear flow in top part spar
-        qb_1 = qb_4
-        # Shear flow in upper triangular section
-        qb_2 = (-1 / self.Izz) * (self.boom_area * a[1, 1] +
-                                  self.boom_area * a[2, 1] + self.boom_area * a[3, 1] +
-                                  self.boom_area * a[4, 1] + self.boom_area * a[5, 1] +
-                                  self.boom_area * a[6, 1] + self.boom_area * a[7, 1] +
-                                  self.boom_area * a[8, 1] + self.boom_area * a[9, 1] +
-                                  self.boom_area * a[10, 1])
-        # Redundant shear flow in left cell
-        q0_1 = ((-1) * ((qb_5 * np.pi * h) / (self.G * self.t_sk) -
-                        (qb_1 * h) / (self.G * self.t_sp) -
-                        (qb_4 * h) / (self.G * self.t_sp))) / ((np.pi * h) / (self.G * self.t_sk)
-                                                               + (2 * h) / (self.G * self.t_sp))
-        q0_2 = ((-1) * ((qb_1 * h) / (self.G * self.t_sp) +
-                        (qb_2 * L_sk) / (self.G * self.t_sk) +
-                        (qb_3 * L_sk) / (self.G * self.t_sk) +
-                        (qb_4 * h) / (self.G * self.t_sp))) / ((2 * h) / (self.G * self.t_sp)
-                                                               + (2 * L_sk) / (self.G * self.t_sk))
+        # qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2)  + self.boom_area * a[6,1] + self.boom_area * a[7,1] + self.boom_area * a[8,1] + self.boom_area * a[9,1])
+        # # Shear flow in bottom part spar
+        # qb_4 = (-1 / self.Izz) * (self.t_sp * (h**2) / 2 )
+        # # Shear flow in semi-circle
+        # qb_5 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2) 
+        #         - self.t_sp * (h**2) / 2  + self.boom_area * a[1,1] + self.boom_area * a[6,1] + self.boom_area * a[7,1] + self.boom_area * a[8,1] + self.boom_area * a[9,1] + self.boom_area * a[10,1])
+        # # Shear flow in top part spar
+        # qb_1 = qb_4
+        # # Shear flow in upper triangular section
+        # qb_2 = (-1 / self.Izz) * (self.t_sk * h * (L_sk/2) + self.boom_area * a[1,1] + 
+        #         self.boom_area * a[2,1] + self.boom_area * a[3,1] +
+        #         self.boom_area * a[4,1] + self.boom_area * a[5,1] +
+        #         self.boom_area * a[6,1] + self.boom_area * a[7,1] +
+        #         self.boom_area * a[8,1] + self.boom_area * a[9,1] +
+        #         self.boom_area * a[10,1])
+        'New method'
+        # Define theta values
+        theta_7 = math.atan(a[10,0] / a[10,1])
+        theta = (np.pi / 2) - theta_7
+        theta_8 = 0
+        theta_9 = math.atan(a[1,0] / a[1,1])
+        s10 = ((2 * np.pi * h) / 4) - self.boom_spacing
+        s12 = self.boom_spacing - s10
+        s5 = s12
+        
+        qb_1 = (-1/self.Izz) * ((-self.t_sk * h * (0.5 * self.boom_spacing)**2) / (2 * L_sk))
+        qb_2 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[6,1]) + qb_1
+        qb_3 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[7,1]) + qb_2
+        qb_4 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[8,1]) + qb_3
+        qb_5 = (-1/self.Izz) * ((-self.t_sk * h * (s5)**2) / (2 * L_sk) + self.boom_area * a[9,1]) + qb_4
+        qb_6 = (-1/self.Izz) * ((self.t_sp * (h)**2) / (2))
+        qb_7 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((-np.pi / 2) + theta_7))) + qb_5 - qb_6
+        qb_8 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos(theta_8) + np.cos((-np.pi / 2) + theta_7)) + self.boom_area * a[10,1]) + qb_7
+        qb_9 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((np.pi / 2) + theta_9) + np.cos(theta_8))) + qb_8
+        qb_10 = (-1/self.Izz) * (self.t_sk * (h)**2 * ( np.cos((np.pi / 2) + theta_9)) + self.boom_area * a[1,1]) + qb_9        
+        qb_11 = qb_6
+        qb_12 = (-1/self.Izz) * (self.t_sk * h * (s12 - ((s12)**2 / (2 * L_sk)))) + qb_10 + qb_11
+        qb_13 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[2,1]) + qb_12
+        qb_14 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[3,1]) + qb_13
+        qb_15 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[4,1]) + qb_14
+        qb_16 = (-1/self.Izz) * (self.t_sk * h * ((0.5 * self.boom_spacing) - ((0.5 * self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[5,1]) + qb_15
 
+        
+        # Redundant shear flow in left & right cell
+        # Computed by using matrices and solving for x
+        # q0_1 = x[0], q0_2 = x[1]
+        A = np.array([[(1/(np.pi * h**2)) * ((np.pi * h) / (self.G * self.t_sk) + 
+                                                    (2 * h)/ (self.G * self.t_sp)),
+                        (-1/(np.pi * h**2)) * (2 * h) / (self.G * self.t_sp)], 
+                      [((-1)/ (2 * h * (self.C_a - h))) * (2 * h) / (self.G * self.t_sp),
+                        ((1) / (2 * h * (self.C_a - h))) * ((2 * h) / (self.G * self.t_sp) +
+                                                    (2 * L_sk) / (self.G * self.t_sk))]])
+        b = np.array([[((-1) / (np.pi * h**2)) * ((qb_7 * theta_7 * h) / (self.G * self.t_sk) +
+                                                  (qb_8 * theta * h) / (self.G * self.t_sk) +
+                                                  (qb_9 * theta * h) / (self.G * self.t_sk) +
+                                                  (qb_10 * theta_7 * h) / (self.G * self.t_sk) -
+                                                  (qb_11 * h) / (self.G * self.t_sp) -
+                                                  (qb_6 * h) / (self.G * self.t_sp))],
+                      [((-1) / (2 * h * (self.C_a - h))) * ((qb_12 * s12) / (self.G * self.t_sk) +
+                                (qb_13 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_14 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_15 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_16 * 0.5 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_1 * 0.5 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_2 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_3 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_4 * self.boom_spacing) / (self.G * self.t_sk) +
+                                (qb_5 * s5) / (self.G * self.t_sk) +
+                                (qb_6 * h) / (self.G * self.t_sp) +
+                                (qb_11 * h) / (self.G * self.t_sp))]])
+        self.x = np.matmul(np.transpose(A), b)
+        q0_1 = self.x[0]
+        q0_2 = self.x[1]
+        #print(qb_1, qb_2, qb_3, qb_4, qb_5, qb_6, qb_7, qb_8, qb_9, qb_10, qb_11, qb_12, qb_13, qb_14, qb_15, qb_16)
+        
+        # # qs = qb + qs_0
+        qs_1 = qb_1 + q0_2
+        qs_2 = qb_2 + q0_2 
+        qs_3 = qb_3 + q0_2
+        qs_4 = qb_4 + q0_2
+        qs_5 = qb_5 + q0_2
+        qs_6 = qb_6 + q0_2 + q0_1
+        qs_7 = qb_7 + q0_1
+        qs_8 = qb_8 + q0_1
+        qs_9 = qb_9 + q0_1
+        qs_10 = qb_10 + q0_1
+        qs_11 = qb_7 + q0_2 + q0_1
+        qs_12 = qb_12 + q0_2
+        qs_13 = qb_13 + q0_2
+        qs_14 = qb_14 + q0_2
+        qs_15 = qb_15 + q0_2
+        qs_16 = qb_16 + q0_2
         # Shear Centre z and y location (due to symmetry y = 0)
-        self.shear_centre_z = (-1) * ((qb_5 * np.pi * h ** 2) +
-                                      (qb_2 * L_sk * np.cos(alpha) * h) +
-                                      (qb_3 * L_sk * np.cos(alpha) * h) +
-                                      (q0_1 * np.pi * h ** 2) +
-                                      (q0_2 * 2 * h * (self.C_a - h))) - h
-
-        self.shear_centre_y = 0
-        # ================================
-
-    # Compute Shear Flow At Any Point
-    # =================================
+        self.shear_centre_z = (-1) * ((((qs_7 * theta_7 * h) + (qs_8 * theta * h) + (qs_9 * theta * h) + (qs_10 * theta_7 * h)) * h) +
+                                      (((qs_12 * s12) + (qs_13 * self.boom_spacing) + (qs_14 * self.boom_spacing) + (qs_15 * self.boom_spacing) + (qs_16 * 0.5 * self.boom_spacing)) * np.cos(alpha) * h) +
+                                      (((qs_1 * 0.5 * self.boom_spacing) + (qs_2 * self.boom_spacing) + (qs_3 * self.boom_spacing) + (qs_4 * self.boom_spacing) + (qs_5 * s5)) * np.cos(alpha) * h)) - h 
+                                
+        self.shear_centre_y = 0                                          
+    #================================ 
+    #Compute Shear Flow At Any Point
+    #=================================
     # Input: Angle theta [rad] from -pi/2 to pi/2
     # Input: y-coordinate [m] from -self.h/2 to self.h/2
     # Input: Fraction of length skin L_sk
@@ -363,15 +422,15 @@ class Aircraft(object):
         + ((2 * h * (self.C_a - h)) ** 2) / ((h) ** 2 * self.G * self.t_sk)
         + (8 * (h * (self.C_a - h)) ** 2) / (np.pi * (h) ** 2 * self.G * self.t_sp)
         + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
-
-        q0_2 = A / X
-
-        # From Torque equation obtained
-        q0_1 = (1 - (2 * h * (self.C_a - h)) * q0_2) / (np.pi * (h) ** 2)
-
+        
+        self.q0_2 = A / X 
+        
+        # From Torque equation obtained        
+        self.q0_1 = (1 - (2 * h * (self.C_a - h)) * self.q0_2) / (np.pi * (h)**2) 
+        
         # Cell I dtheta_dz used
-        dtheta_dz = (1 / (np.pi * h)) * ((q0_1 * np.pi) / (self.G * self.t_sk)
-                                         + (2 * (q0_1 - q0_2)) / (self.G * self.t_sp))
+        dtheta_dz = (1 / (np.pi * h)) * ((self.q0_1 * np.pi) / (self.G * self.t_sk)
+                                         + (2 * (self.q0_1 - self.q0_2)) / (self.G * self.t_sp))
         # Torsional stiffness J
         self.J = 1 / (self.G * dtheta_dz)
 
@@ -430,6 +489,8 @@ f100.centroid()
 f100.second_moi()
 f100.shear_centre()
 f100.torsional_stiffness()
+#I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+#=======================================================================================
 
 # I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
 I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E,
