@@ -220,7 +220,7 @@ class Aircraft(object):
         l_sk = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
         Izz_sk = (l_sk) ** 3 * self.t_sk * ((self.h / 2) / (l_sk)) ** 2 / 12
 
-        self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk
+        self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk*2
 
         # I_yy
         steiner_boom_skin_yy = np.square(self.boom_skin_z_y_a[0, :] - self.cent[0]) * self.boom_skin_z_y_a[2, :]
@@ -229,7 +229,7 @@ class Aircraft(object):
         Iyy_spar = 0
         Iyy_sk = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk)) ** 2 / 12
 
-        self.Iyy = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk
+        self.Iyy = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk*2
 
         # I_xy
         self.Iyz = 0.
