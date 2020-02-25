@@ -82,6 +82,8 @@ Reaction_bending_nodes      = np.hstack((Boundarynode_coordinates,Reaction_bendi
 Reaction_Jam_nodes          = np.hstack((Boundarynode_coordinates,Reaction_Jam_nodes[:,1:]))
 Reaction_straight_nodes     = np.hstack((Boundarynode_coordinates,Reaction_straight_nodes[:,1:]))
 
+print(Displacement_bending[500])
+
 #sorting in x: 62 nodes per slice Mises, 61 nodes per slice Displacement, 108 slices
 Mises_shear_bending          = Mises_shear_bending[Mises_shear_bending[:,1].argsort()]
 Mises_shear_Jam              = Mises_shear_Jam[Mises_shear_Jam[:,1].argsort()]
@@ -96,8 +98,9 @@ Reaction_bending_nodes       = Reaction_bending_nodes[Reaction_bending_nodes[:,1
 Reaction_Jam_nodes           = Reaction_Jam_nodes[Reaction_Jam_nodes[:,1].argsort()]
 Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:,1].argsort()]
 
-#slice funtions
 
+#slice funtions
+"""
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -118,3 +121,4 @@ ax.set_zlabel('Z Label')
 
 
 plt.show()
+"""
