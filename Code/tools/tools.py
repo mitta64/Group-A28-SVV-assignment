@@ -134,10 +134,12 @@ class Aircraft(object):
         self.boom_loc_area = np.zeros(shape=(self.n_st, 3))
         # calc amount of stringers in arc
         n_arc_half = int((np.pi / 2) / angle_arc)
-        print('n_arc', n_arc_half)
+        #print('n_arc', n_arc_half)
+        # Add stringer in 0,0 arc
+        self.boom_loc_area[0,:] = np.array([0,0,self.boom_area])
 
         # Add stringer in upper arc section
-        for i in np.linspace(1, n_arc_half, n_arc_half, dtype=int):
+        for i in np.arange(1, n_arc_half+1, 1, dtype=int):
             boom_arc_up = np.array([-((self.h / 2) - (np.cos(angle_arc * i) * (self.h / 2))),
                                     np.sin(angle_arc * i) * (self.h / 2), self.boom_area])
             self.boom_loc_area[i, :] = boom_arc_up
@@ -147,32 +149,38 @@ class Aircraft(object):
             # - np.sin(angle_arc) * (self.h / 2), self.boom_area]))
 
             # self.boom_loc_area[i+1,:] = boom_arc_down
-            print(i)
+            #print('upper arc',i, boom_arc_up)
 
         # Add stringers in upper triangular section
 
-        pos = n_arc_half
+        pos = n_arc_half+1
         for i in np.arange((self.n_st - (n_arc_half * 2 + 1)) / 2 - 0.5, -0.5, -1):
             boom_tri_up = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
                                     i * self.boom_spacing * np.sin(angle_triangle), self.boom_area])
             self.boom_loc_area[pos, :] = boom_tri_up
+
+            #print('upper tri',pos,boom_tri_up,i)
             pos = pos + 1
-            print(pos)
 
         # Add stringers in lower triangular section
         for i in np.arange(0.5, (self.n_st - (n_arc_half * 2 + 1)) / 2 + 0.5, 1):
             boom_tri_down = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
                                       -i * self.boom_spacing * np.sin(angle_triangle), self.boom_area])
             self.boom_loc_area[pos] = boom_tri_down
+
+            #print('lower tri',pos,boom_tri_down,i)
             pos = pos + 1
-            print(pos)
 
-        for i in np.linspace(1, n_arc_half, n_arc_half, dtype=int):
+        # Add in lower arc section
+
+        for i in np.arange(n_arc_half,0,-1 ,dtype=int):
             boom_arc_down = (np.array([
-                -((self.h / 2) - (np.cos(angle_arc * (n_arc_half - i)) * (self.h / 2))),
-                - np.sin(angle_arc * (n_arc_half - i)) * (self.h / 2), self.boom_area]))
+                -((self.h / 2) - (np.cos(angle_arc *  (i)) * (self.h / 2))),
+                - np.sin(angle_arc * (i)) * (self.h / 2), self.boom_area]))
 
-            self.boom_loc_area[i + 1, :] = boom_arc_down
+            self.boom_loc_area[pos, :] = boom_arc_down
+            #print('lower arc',pos,boom_arc_down)
+            pos = pos + 1
 
             # "Final output of booms function is self.boom_loc_area"
 
@@ -181,7 +189,6 @@ class Aircraft(object):
     # =====================
     def centroid(self):
         arr_z_y_a = np.zeros(shape=(3, 4 + self.n_st))
-        print(arr_z_y_a)
 
         x_circ = - (self.h / 2 - self.h / np.pi)
         a_circ = np.pi * self.h / 2 * self.t_sk
@@ -191,7 +198,7 @@ class Aircraft(object):
         a_spr = self.h * self.t_sp
         arr_z_y_a[:, 1] = [x_spr, 0., a_spr]
 
-        x_sk = - (self.h / 4 + self.C_a / 2)
+        x_sk = - (self.C_a / 2 + self.h / 4 )
         y_sk = self.h / 4
         a_sk = np.sqrt((self.h / 2) ** 2 + (self.C_a - self.h / 2) ** 2) * self.t_sk
         arr_z_y_a[:, 2:4] = [[x_sk, x_sk], [y_sk, -y_sk], [a_sk, a_sk]]
@@ -200,14 +207,14 @@ class Aircraft(object):
         self.boom_skin_z_y_a = arr_z_y_a
 
         self.cent = np.round(np.array([[np.sum(arr_z_y_a[0, :] * arr_z_y_a[2, :]) / np.sum([arr_z_y_a[2, :]])],
-                                       [np.sum(arr_z_y_a[1, :] * arr_z_y_a[2, :]) / np.sum([arr_z_y_a[2, :]])]]), 5)
+                                       [np.sum(arr_z_y_a[1, :] * arr_z_y_a[2, :]) / np.sum([arr_z_y_a[2, :]])]]), 9)
 
     # ========================
     # Compute Second Moment of Inertia
     # ========================
     def second_moi(self):
         # I_zz
-        steiner_boom_skin_zz = np.round(np.square(self.boom_skin_z_y_a[1, :]) * self.boom_skin_z_y_a[2, :], 7)
+        steiner_boom_skin_zz = np.square(self.boom_skin_z_y_a[1, :]) * self.boom_skin_z_y_a[2, :]
         Izz_circ = np.pi * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4) / 8
         Izz_spar = self.h ** 3 * self.t_sp / 12
         l_sk = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
@@ -418,17 +425,12 @@ A320 = Aircraft("Airbus A320", 0.547, 2.771, 0.153, 1.281, 2.681, 28., 22.5, 1.1
 # Replace 'f100' when analysing a different aircraft
 
 # ====================================================
-#f100.booms()
-#f100.centroid()
-#f100.second_moi()
-#f100.shear_centre()
-#f100.torsional_stiffness()
+f100.booms()
+f100.centroid()
+f100.second_moi()
+f100.shear_centre()
+f100.torsional_stiffness()
 
-A320.booms()
-A320.centroid()
-A320.second_moi()
-A320.shear_centre()
-A320.torsional_stiffness()
 # I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
 I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E,
      -0.08553893540215983]  # testing true data
