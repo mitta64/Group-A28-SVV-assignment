@@ -111,7 +111,7 @@ class Aircraft(object):
 
         # Compute stringer area
         self.boom_area = ((self.w_st) * (self.t_st)
-                          + ((self.h_st - self.t_st) * self.t_st))
+                         + ((self.h_st - self.t_st) * self.t_st))
 
         # Compute aileron circumference
         aileron_circumference = (((2 * np.pi * (self.h / 2)) / 2)
@@ -122,35 +122,35 @@ class Aircraft(object):
         self.boom_spacing = aileron_circumference / self.n_st
 
         # Compute orientation stringer in semi-circle & triangular section      
-        angle_arc = (self.boom_spacing / (self.h / 2))
+        self.angle_arc = (self.boom_spacing / (self.h / 2))
         angle_triangle = (math.atan((self.h /2) / (self.C_a - (self.h /2))))                                                
         
         # Start array with Col 1 z coordinate & Col 2 y coordinate 
         # Add stringers, starting at LE and going clockwise
         self.boom_loc_area = np.zeros(shape=(self.n_st, 3))
         # calc amount of stringers in arc
-        n_arc_half = int((np.pi / 2) / angle_arc)
-        #print('n_arc', n_arc_half)
+        self.n_arc_half = int((np.pi / 2) / sel.angle_arc)
+        #print('n_arc', self.n_arc_half)
         # Add stringer in 0,0 arc
         self.boom_loc_area[0,:] = np.array([0,0,self.boom_area])
 
         # Add stringer in upper arc section
-        for i in np.arange(1, n_arc_half+1, 1, dtype=int):
-            boom_arc_up = np.array([-((self.h / 2) - (np.cos(angle_arc * i) * (self.h / 2))),
-                                    np.sin(angle_arc * i) * (self.h / 2), self.boom_area])
+        for i in np.arange(1, self.n_arc_half+1, 1, dtype=int):
+            boom_arc_up = np.array([-((self.h / 2) - (np.cos(self.angle_arc * i) * (self.h / 2))),
+                                    np.sin(self.angle_arc * i) * (self.h / 2), self.boom_area])
             self.boom_loc_area[i, :] = boom_arc_up
 
             # boom_arc_down = (np.array([
-            # -((self.h / 2) - (np.cos(angle_arc) * (self.h / 2))),
-            # - np.sin(angle_arc) * (self.h / 2), self.boom_area]))
+            # -((self.h / 2) - (np.cos(self.angle_arc) * (self.h / 2))),
+            # - np.sin(self.angle_arc) * (self.h / 2), self.boom_area]))
 
             # self.boom_loc_area[i+1,:] = boom_arc_down
             #print('upper arc',i, boom_arc_up)
 
         # Add stringers in upper triangular section
 
-        pos = n_arc_half+1
-        for i in np.arange((self.n_st - (n_arc_half * 2 + 1)) / 2 - 0.5, -0.5, -1):
+        pos = self.n_arc_half+1
+        for i in np.arange((self.n_st - (self.n_arc_half * 2 + 1)) / 2 - 0.5, -0.5, -1):
             boom_tri_up = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
                                     i * self.boom_spacing * np.sin(angle_triangle), self.boom_area])
             self.boom_loc_area[pos, :] = boom_tri_up
@@ -159,7 +159,7 @@ class Aircraft(object):
             pos = pos + 1
 
         # Add stringers in lower triangular section
-        for i in np.arange(0.5, (self.n_st - (n_arc_half * 2 + 1)) / 2 + 0.5, 1):
+        for i in np.arange(0.5, (self.n_st - (self.n_arc_half * 2 + 1)) / 2 + 0.5, 1):
             boom_tri_down = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
                                       -i * self.boom_spacing * np.sin(angle_triangle), self.boom_area])
             self.boom_loc_area[pos] = boom_tri_down
@@ -169,10 +169,10 @@ class Aircraft(object):
 
         # Add in lower arc section
 
-        for i in np.arange(n_arc_half,0,-1 ,dtype=int):
+        for i in np.arange(self.n_arc_half,0,-1 ,dtype=int):
             boom_arc_down = (np.array([
-                -((self.h / 2) - (np.cos(angle_arc *  (i)) * (self.h / 2))),
-                - np.sin(angle_arc * (i)) * (self.h / 2), self.boom_area]))
+                -((self.h / 2) - (np.cos(self.angle_arc *  (i)) * (self.h / 2))),
+                - np.sin(self.angle_arc * (i)) * (self.h / 2), self.boom_area]))
 
             self.boom_loc_area[pos, :] = boom_arc_down
             #print('lower arc',pos,boom_arc_down)
@@ -269,21 +269,28 @@ class Aircraft(object):
         theta = (np.pi / 2) - theta_7
         theta_8 = 0
         theta_9 = math.atan(a[1,0] / a[1,1])
-        s10 = ((2 * np.pi * h) / 4) - self.boom_spacing
-        s12 = self.boom_spacing - s10
+        s12 = L_sk - (3.5) * self.boom_spacing
+        s10 = self.boom_spacing - s12
         s5 = s12
         
+        # Shear flow bottom triangle
         qb_1 = (-1/self.Izz) * ((-self.t_sk * h * (0.5 * self.boom_spacing)**2) / (2 * L_sk))
         qb_2 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[6,1]) + qb_1
         qb_3 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[7,1]) + qb_2
         qb_4 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[8,1]) + qb_3
         qb_5 = (-1/self.Izz) * ((-self.t_sk * h * (s5)**2) / (2 * L_sk) + self.boom_area * a[9,1]) + qb_4
+        
+        # Shear flow spar
         qb_6 = (-1/self.Izz) * ((self.t_sp * (h)**2) / (2))
+        qb_11 = qb_6
+        
+        # Shear flow semi-circle
         qb_7 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((-np.pi / 2) + theta_7))) + qb_5 - qb_6
         qb_8 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos(theta_8) + np.cos((-np.pi / 2) + theta_7)) + self.boom_area * a[10,1]) + qb_7
-        qb_9 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((np.pi / 2) + theta_9) + np.cos(theta_8))) + qb_8
-        qb_10 = (-1/self.Izz) * (self.t_sk * (h)**2 * ( np.cos((np.pi / 2) + theta_9)) + self.boom_area * a[1,1]) + qb_9        
-        qb_11 = qb_6
+        qb_9 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((np.pi / 2) - theta_9) + np.cos(theta_8))) + qb_8
+        qb_10 = (-1/self.Izz) * (self.t_sk * (h)**2 * ( np.cos((np.pi / 2) - theta_9)) + self.boom_area * a[1,1]) + qb_9        
+        
+        # Shear flow top triangle
         qb_12 = (-1/self.Izz) * (self.t_sk * h * (s12 - ((s12)**2 / (2 * L_sk)))) + qb_10 + qb_11
         qb_13 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[2,1]) + qb_12
         qb_14 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[3,1]) + qb_13
@@ -409,27 +416,32 @@ class Aircraft(object):
 
         # Compute q0_2, q0_1, dtheta_dz and self.J
         # A = X * q0_2
-        A = (2 * (self.C_a - h)) / (h * self.G * self.t_sk)
-        + (4 * (self.C_a - h)) / (np.pi * h * self.G * self.t_sp)
-        + (2) / (self.G * self.t_sp)
+        'Old method'
+        # A = (2 * (self.C_a - h)) / (h * self.G * self.t_sk)
+        # + (4 * (self.C_a - h)) / (np.pi * h * self.G * self.t_sp)
+        # + (2) / (self.G * self.t_sp)
 
-        X = (2 * np.pi * h * L_sk) / (self.G * self.t_sk)
-        + (2 * np.pi * h ** 2) / (self.G * self.t_sp)
-        + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
-        + ((2 * h * (self.C_a - h)) ** 2) / ((h) ** 2 * self.G * self.t_sk)
-        + (8 * (h * (self.C_a - h)) ** 2) / (np.pi * (h) ** 2 * self.G * self.t_sp)
-        + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
+        # X = (2 * np.pi * h * L_sk) / (self.G * self.t_sk)
+        # + (2 * np.pi * h ** 2) / (self.G * self.t_sp)
+        # + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
+        # + ((2 * h * (self.C_a - h)) ** 2) / ((h) ** 2 * self.G * self.t_sk)
+        # + (8 * (h * (self.C_a - h)) ** 2) / (np.pi * (h) ** 2 * self.G * self.t_sp)
+        # + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
         
-        self.q0_2 = A / X 
+        # self.q0_2 = A / X 
         
-        # From Torque equation obtained        
-        self.q0_1 = (1 - (2 * h * (self.C_a - h)) * self.q0_2) / (np.pi * (h)**2) 
+        # # From Torque equation obtained        
+        # self.q0_1 = (1 - (2 * h * (self.C_a - h)) * self.q0_2) / (np.pi * (h)**2) 
         
-        # Cell I dtheta_dz used
-        dtheta_dz = (1 / (np.pi * h)) * ((self.q0_1 * np.pi) / (self.G * self.t_sk)
-                                         + (2 * (self.q0_1 - self.q0_2)) / (self.G * self.t_sp))
+        # # Cell I dtheta_dz used
+        # dtheta_dz = (1 / (np.pi * h)) * ((self.q0_1 * np.pi) / (self.G * self.t_sk)
+        #                                  + (2 * (self.q0_1 - self.q0_2)) / (self.G * self.t_sp))
+        
+        'New method'
+        
+        
         # Torsional stiffness J
-        self.J = 1 / (self.G * dtheta_dz)
+        #self.J = 1 / (self.G * dtheta_dz)
 
     def plot_aileron(self, plot=True,step_n = 100):
         theta_step = np.linspace(-np.pi / 2, np.pi / 2, step_n)
