@@ -125,35 +125,35 @@ class Aircraft(object):
         self.boom_spacing = aileron_circumference / self.n_st
 
         # Compute orientation stringer in semi-circle & triangular section      
-        angle_arc = (self.boom_spacing / (self.h / 2))
+        self.angle_arc = (self.boom_spacing / (self.h / 2))
         angle_triangle = (math.atan((self.h /2) / (self.C_a - (self.h /2))))                                                
         
         # Start array with Col 1 z coordinate & Col 2 y coordinate 
         # Add stringers, starting at LE and going clockwise
         self.boom_loc_area = np.zeros(shape=(self.n_st, 3))
         # calc amount of stringers in arc
-        n_arc_half = int((np.pi / 2) / angle_arc)
-        #print('n_arc', n_arc_half)
+        self.n_arc_half = int((np.pi / 2) / sel.angle_arc)
+        #print('n_arc', self.n_arc_half)
         # Add stringer in 0,0 arc
         self.boom_loc_area[0,:] = np.array([0,0,self.boom_area])
 
         # Add stringer in upper arc section
-        for i in np.arange(1, n_arc_half+1, 1, dtype=int):
-            boom_arc_up = np.array([-((self.h / 2) - (np.cos(angle_arc * i) * (self.h / 2))),
-                                    np.sin(angle_arc * i) * (self.h / 2), self.boom_area])
+        for i in np.arange(1, self.n_arc_half+1, 1, dtype=int):
+            boom_arc_up = np.array([-((self.h / 2) - (np.cos(self.angle_arc * i) * (self.h / 2))),
+                                    np.sin(self.angle_arc * i) * (self.h / 2), self.boom_area])
             self.boom_loc_area[i, :] = boom_arc_up
 
             # boom_arc_down = (np.array([
-            # -((self.h / 2) - (np.cos(angle_arc) * (self.h / 2))),
-            # - np.sin(angle_arc) * (self.h / 2), self.boom_area]))
+            # -((self.h / 2) - (np.cos(self.angle_arc) * (self.h / 2))),
+            # - np.sin(self.angle_arc) * (self.h / 2), self.boom_area]))
 
             # self.boom_loc_area[i+1,:] = boom_arc_down
             #print('upper arc',i, boom_arc_up)
 
         # Add stringers in upper triangular section
 
-        pos = n_arc_half+1
-        for i in np.arange((self.n_st - (n_arc_half * 2 + 1)) / 2 - 0.5, -0.5, -1):
+        pos = self.n_arc_half+1
+        for i in np.arange((self.n_st - (self.n_arc_half * 2 + 1)) / 2 - 0.5, -0.5, -1):
             boom_tri_up = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
                                     i * self.boom_spacing * np.sin(angle_triangle), self.boom_area])
             self.boom_loc_area[pos, :] = boom_tri_up
@@ -162,7 +162,7 @@ class Aircraft(object):
             pos = pos + 1
 
         # Add stringers in lower triangular section
-        for i in np.arange(0.5, (self.n_st - (n_arc_half * 2 + 1)) / 2 + 0.5, 1):
+        for i in np.arange(0.5, (self.n_st - (self.n_arc_half * 2 + 1)) / 2 + 0.5, 1):
             boom_tri_down = np.array([-(self.C_a - i * self.boom_spacing * np.cos(angle_triangle)),
                                       -i * self.boom_spacing * np.sin(angle_triangle), self.boom_area])
             self.boom_loc_area[pos] = boom_tri_down
@@ -172,10 +172,10 @@ class Aircraft(object):
 
         # Add in lower arc section
 
-        for i in np.arange(n_arc_half,0,-1 ,dtype=int):
+        for i in np.arange(self.n_arc_half,0,-1 ,dtype=int):
             boom_arc_down = (np.array([
-                -((self.h / 2) - (np.cos(angle_arc *  (i)) * (self.h / 2))),
-                - np.sin(angle_arc * (i)) * (self.h / 2), self.boom_area]))
+                -((self.h / 2) - (np.cos(self.angle_arc *  (i)) * (self.h / 2))),
+                - np.sin(self.angle_arc * (i)) * (self.h / 2), self.boom_area]))
 
             self.boom_loc_area[pos, :] = boom_arc_down
             #print('lower arc',pos,boom_arc_down)
