@@ -388,7 +388,7 @@ class Aircraft(object):
         #                         (qb_11 * h) / (self.G * self.t_sp))]])
         'New method'
         b2 = (self.qb[0,0]*self.boom_spacing*0.5 +
-              np.sum[self.qb[0,1:booms_triangle]] * self.boom_spacing +
+              np.sum(self.qb[0,1:booms_triangle]) * self.boom_spacing +
               s5 * self.qb[0, booms_triangle] +
               s12 * self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 2] +
               self.boom_spacing * np.sum(self.qb[0,booms_triangle + 3 + 2 * self.n_arc_half + 3: 2*booms_triangle + 3 + 2 * self.n_arc_half + 2]) +
@@ -400,7 +400,36 @@ class Aircraft(object):
         q0_1 = self.x[0]
         q0_2 = self.x[1]
         # #print(qb_1, qb_2, qb_3, qb_4, qb_5, qb_6, qb_7, qb_8, qb_9, qb_10, qb_11, qb_12, qb_13, qb_14, qb_15, qb_16)
-        
+
+        #add q0 to shear flow
+
+          # adding for top = botom skin
+            #lower
+        self.qb[0,0] += q0_2
+        self.qb[0,1:booms_triangle]   += q0_2
+        self.qb[0, booms_triangle] += q0_2
+            #upper
+        self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 2] += q0_2
+        self.qb[0,booms_triangle + 3 + 2 * self.n_arc_half + 3: 2*booms_triangle + 3 + 2 * self.n_arc_half + 2] += q0_2
+        self.qb[0, 2 * booms_triangle + 3 + 2 * self.n_arc_half + 2] += q0_2
+
+         # adding for arc
+
+        self.qb[0, booms_triangle + 2] += q0_1
+        self.qb[0,booms_triangle + 3:booms_triangle + 3 + 2 * self.n_arc_half] += q0_1
+        self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half] += q0_1
+
+         # addaing spars
+        self.qb[0, booms_triangle + 1] += q0_2 + q0_1
+        self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 1] += q0_2 = q0_1
+
+
+
+
+
+
+
+
         # # # qs = qb + qs_0
         # qs_1 = qb_1 + q0_2
         # qs_2 = qb_2 + q0_2 
