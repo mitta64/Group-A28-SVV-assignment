@@ -17,32 +17,31 @@ import copy
 class Aircraft(object):
     def __init__(self, name, C_a, l_a, x_1, x_2, x_3, x_a, h,
                  t_sk, t_sp, t_st, h_st, w_st, n_st, d_1, d_3, theta, P):
-        self.name = name
-        self.C_a = C_a  # "Chord length aileron[m]"
-        self.l_a = l_a  # "Span of the aileron[m]"
-        self.x_1 = x_1  # "x-location of hinge 1 [m]"
-        self.x_2 = x_2  # "x-location of hinge 2 [m]"
-        self.x_3 = x_3  # "x-location of hinge 3 [m]"
-        self.x_a = round(x_a / 100, 8)  # "Distance between actuator 1 and 2 [m]"
-        self.h = round(h / 100, 8)  # "Aileron height[m]"
-        self.t_sk = round(t_sk / 1000, 8)  # "Skin thickness [m]"
-        self.t_sp = round(t_sp / 1000, 8)  # "Spar thickness [m]"
-        self.t_st = round(t_st / 1000, 8)  # "Thickness of stiffener[m]"
-        self.h_st = round(h_st / 100, 8)  # "Height of stiffener[m]"
-        self.w_st = round(w_st / 100, 8)  # "Width of stiffener[m]"
-        self.n_st = n_st  # "Number of stiffeners [-]"
-        self.d_1 = round(d_1 / 100, 8)  # "Vertical displacement hinge 1[m]"
-        self.d_3 = round(d_3 / 100, 8)  # "Vertical displacement hinge 3[m]"
-        self.theta = theta  # "Maximum upward deflection[deg]"
-        self.P = round(P * 1000, 8)  # "Load in actuator 2[N]"
+        self.name   = name
+        self.C_a    = C_a                   # "Chord length aileron[m]"
+        self.l_a    = l_a                   # "Span of the aileron[m]"
+        self.x_1    = x_1                   # "x-location of hinge 1 [m]"
+        self.x_2    = x_2                   # "x-location of hinge 2 [m]"
+        self.x_3    = x_3                   # "x-location of hinge 3 [m]"
+        self.x_a    = round(x_a / 100, 8)   # "Distance between actuator 1 and 2 [m]"
+        self.h      = round(h / 100, 8)     # "Aileron height[m]"
+        self.t_sk   = round(t_sk / 1000, 8) # "Skin thickness [m]"
+        self.t_sp   = round(t_sp / 1000, 8) # "Spar thickness [m]"
+        self.t_st   = round(t_st / 1000, 8) # "Thickness of stiffener[m]"
+        self.h_st   = round(h_st / 100, 8)  # "Height of stiffener[m]"
+        self.w_st   = round(w_st / 100, 8)  # "Width of stiffener[m]"
+        self.n_st   = n_st                  # "Number of stiffeners [-]"
+        self.d_1    = round(d_1 / 100, 8)   # "Vertical displacement hinge 1[m]"
+        self.d_3    = round(d_3 / 100, 8)   # "Vertical displacement hinge 3[m]"
+        self.theta  = theta                 # "Maximum upward deflection[deg]"
+        self.P      = round(P * 1000, 8)     # "Load in actuator 2[N]"
 
         # Material properties
-        self.G      = 27.1 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa]"
+        self.G      = 27.1 * 10**9          #"Shear Modulus of Aluminium 2024-T3 [Pa]"
         self.E      = 72.9 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa]"
+
     def description(self):
-
         prop = vars(self)
-
         for i in prop.keys():
             print(str(i) + "=" + '\t' + str(prop[i]))
 
@@ -210,21 +209,20 @@ class Aircraft(object):
     # ========================
     def second_moi(self):
         # I_zz
-        steiner_boom_skin_zz = np.square(self.boom_skin_z_y_a[1, :]) * self.boom_skin_z_y_a[2, :]
-        Izz_circ = np.pi * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4) / 8
-        Izz_spar = self.h ** 3 * self.t_sp / 12
-        l_sk = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
-        Izz_sk = (l_sk) ** 3 * self.t_sk * ((self.h / 2) / (l_sk)) ** 2 / 12
-
-        self.Izz = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk*2
+        steiner_boom_skin_zz    = np.square(self.boom_skin_z_y_a[1, :]) * self.boom_skin_z_y_a[2, :]
+        Izz_circ                = np.pi * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4) / 8
+        Izz_spar                = self.h ** 3 * self.t_sp / 12
+        l_sk                    = np.sqrt((self.C_a - self.h / 2) ** 2 + (self.h / 2) ** 2)
+        Izz_sk                  = (l_sk) ** 3 * self.t_sk * ((self.h / 2) / (l_sk)) ** 2 / 12
+        self.Izz                = np.sum(steiner_boom_skin_zz) + Izz_circ + Izz_spar + Izz_sk*2
 
         # I_yy
-        steiner_boom_skin_yy = np.square(self.boom_skin_z_y_a[0, :] - self.cent[0]) * self.boom_skin_z_y_a[2, :]
+        steiner_boom_skin_yy    = (np.square(self.boom_skin_z_y_a[0, :] 
+                           - self.cent[0]) * self.boom_skin_z_y_a[2, :])
 
         Iyy_circ = (np.pi / 8 - 8 / (np.pi * 9)) * ((self.h / 2) ** 4 - (self.h / 2 - self.t_sk) ** 4)
         Iyy_spar = 0
         Iyy_sk = (l_sk) ** 3 * self.t_sk * ((self.C_a - self.h / 2) / (l_sk)) ** 2 / 12
-
         self.Iyy = np.sum(steiner_boom_skin_yy) + Iyy_circ + Iyy_spar + Iyy_sk*2
 
         # I_xy
@@ -839,8 +837,6 @@ def plot(data, thing_to_plot, unit):
     plt.xlabel('span (m)')
     plt.ylabel(thing_to_plot + ' (' + unit + ')')
     plt.show()
-    return ()
-
 
 """ how to use """
 # func = np.sin(np.linspace(0, 10, 100))
@@ -865,102 +861,102 @@ def plot(data, thing_to_plot, unit):
 # ugly code just for testing results
 
 
-def v_deflection(x):
-    Kz    = (1/(f100.E*I[0]))
-    P = f100.P
-    x1 = f100.x_1
-    x2 = f100.x_2
-    x3 = f100.x_3
-    xa = f100.x_a
-    ksi1 = x2 - xa / 2
-    ksi2 = x2 + xa / 2
-    alpha = math.radians(f100.theta)
+def v_deflection(x, unknowns, aircraft):
+    Kz      = (1/(aircraft.E*aircraft.Izz))
+    P       = aircraft.P
+    x1      = aircraft.x_1
+    x2      = aircraft.x_2
+    x3      = aircraft.x_3
+    xa      = aircraft.x_a
+    ksi1    = x2 - xa / 2
+    ksi2    = x2 + xa / 2
+    alpha   = math.radians(aircraft.theta)
 
     R1y = unknowns[0][0]
     R2y = unknowns[1][0]
     R3y = unknowns[2][0]
-    Ri = unknowns[6][0]
-    C1 = unknowns[7][0]
-    C2 = unknowns[8][0]
-    v = Kz* (R1y/6*macaulay(x,x1,3) + R2y/6*macaulay(x,x2,3) + R3y/6*macaulay(x,x3,3) + Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) - P*np.sin(alpha)/6*macaulay(x,ksi2,3) - integral_z(5,x)) +C1*x + C2
-    
-
+    Ri  = unknowns[6][0]
+    C1  = unknowns[7][0]
+    C2  = unknowns[8][0]
+    v   = Kz*((R1y/6*macaulay(x,x1,3) + 
+               R2y/6*macaulay(x,x2,3) + 
+               R3y/6*macaulay(x,x3,3) + 
+               Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) - 
+               P*np.sin(alpha)/6*macaulay(x,ksi2,3) - 
+               integral_z(5,x)) +C1*x + C2)
     return v
 
 
-def w_deflection(x):
-    Ky = 1/(f100.E * I[1])
-    P = f100.P
-    x1 = f100.x_1
-    x2 = f100.x_2
-    x3 = f100.x_3
-    xa = f100.x_a
-    ksi1 = x2 - xa / 2
-    ksi2 = x2 + xa / 2
-    alpha = math.radians(f100.theta)
+def w_deflection(x, unknowns):
+    Ky      = 1/(f100.E * I[1])
+    P       = f100.P
+    x1      = f100.x_1
+    x2      = f100.x_2
+    x3      = f100.x_3
+    xa      = f100.x_a
+    ksi1    = x2 - xa / 2
+    ksi2    = x2 + xa / 2
+    alpha   = math.radians(f100.theta)
 
     R1z = unknowns[3][0]
     R2z = unknowns[4][0]
     R3z = unknowns[5][0]
-    Ri = unknowns[6][0]
-    C3 = unknowns[9][0]
-    C4 = unknowns[10][0]
-    w = Ky * (R1z / 6 * macaulay(x, x1, 3) + R2z / 6 * macaulay(x, x2, 3) + R3z / 6 * macaulay(x, x3, 3) + Ri * np.cos(
-        alpha) / 6 * macaulay(x, ksi1, 3) - P * np.cos(alpha) / 6 * macaulay(x, ksi2, 3)) + C3 * x + C4
-
+    Ri  = unknowns[6][0]
+    C3  = unknowns[9][0]
+    C4  = unknowns[10][0]
+    w   = Ky *((R1z / 6 * macaulay(x, x1, 3) + 
+                R2z / 6 * macaulay(x, x2, 3) + 
+                R3z / 6 * macaulay(x, x3, 3) + 
+                Ri * np.cos(alpha) / 6 * macaulay(x, ksi1, 3) - 
+                P * np.cos(alpha) / 6 * macaulay(x, ksi2, 3)) + 
+                C3 * x + C4)
     return w
 
 
-def twist(x):
-    L = 1/(I[2]*I[3])
-    zsc = I[-1]
-    P = f100.P
-    h = f100.h
-    x1 = f100.x_1
-    x2 = f100.x_2
-    x3 = f100.x_3
-    xa = f100.x_a
-    ksi1 = x2 - xa / 2
-    ksi2 = x2 + xa / 2
-    alpha = math.radians(f100.theta)
-
-    eta = -h/2 - zsc
-    
-
-
-
+def twist(x, unknowns):
+    L       = 1/(I[2]*I[3])
+    zsc     = I[-1]
+    P       = f100.P
+    h       = f100.h
+    x1      = f100.x_1
+    x2      = f100.x_2
+    x3      = f100.x_3
+    xa      = f100.x_a
+    ksi1    = x2 - xa / 2
+    ksi2    = x2 + xa / 2
+    alpha   = math.radians(f100.theta)
+    eta     = -h/2 - zsc
 
     R1y = unknowns[0][0]
     R2y = unknowns[1][0]
     R3y = unknowns[2][0]
-    Ri = unknowns[6][0]
-
-    C5 = unknowns[-1][0]
+    Ri  = unknowns[6][0]
+    C5  = unknowns[-1][0]
     
     twist = -1*( L* ( eta*R1y*macaulay(x,x1,1) 
-    + eta*R2y*macaulay(x,x2,1) 
-    + eta*R3y*macaulay(x,x3,1) 
-    - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) 
-    - h/2*Ri*np.cos(alpha)*macaulay(x,ksi1,1) 
-    + zsc*P*np.sin(alpha)*macaulay(x,ksi2,1) 
-    + h/2*P*np.cos(alpha)*macaulay(x,ksi2,1) 
-    + integral_z(3,x_final=x,z_sc=zsc) ) 
-    + C5 )
-    
-
+                    + eta*R2y*macaulay(x,x2,1) 
+                    + eta*R3y*macaulay(x,x3,1) 
+                    - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) 
+                    - h/2*Ri*np.cos(alpha)*macaulay(x,ksi1,1) 
+                    + zsc*P*np.sin(alpha)*macaulay(x,ksi2,1) 
+                    + h/2*P*np.cos(alpha)*macaulay(x,ksi2,1) 
+                    + integral_z(3,x_final=x,z_sc=zsc) ) 
+                    + C5 )
     return twist
 
 
-def v_globaldeflection(x):
-    alpha = math.radians(f100.theta)
-    h = f100.h
-    zsc = I[-1]
-    eta = -h/2 - zsc
-    v_global = v_deflection(x)/np.cos(alpha) - w_deflection(x)/np.sin(alpha) + eta*twist(x)
+def v_globaldeflection(x,unknowns):
+    alpha       = math.radians(f100.theta)
+    h           = f100.h
+    zsc         = I[-1]
+    eta         = -h/2 - zsc
+    v_global    = (v_deflection(x)/np.cos(alpha) - 
+                   w_deflection(x)/np.sin(alpha) + 
+                   eta*twist(x))
     return v_global
     
     
-def deflectionplot(func, length, totalnodes): # length f100.l_a
+def deflectionplot(func, length, totalnodes, unknowns): # length f100.l_a
     funcdata = [] # y(x)
     xdata = np.linspace(0,length,totalnodes)
     for i in xdata:
