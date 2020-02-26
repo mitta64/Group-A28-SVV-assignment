@@ -357,7 +357,7 @@ class Aircraft(object):
         print(x, 'qb_11')
         x += 1
         # Shear flow top triangle
-        qb_12 = (-1 / self.Izz) * (self.t_sk * h * (s12 - (s12) ** 2 / (2 * L_sk))) + self.qb[
+        qb_12 = (-1 / self.Izz) * (self.t_sk * h * (s12 - ((s12) ** 2 / (2 * L_sk)))) + self.qb[
             0, booms_triangle + 3 + 2 * self.n_arc_half] + self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 1]
         self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_12
         print(x, 'qb_12', qb_12, s12)
@@ -366,11 +366,12 @@ class Aircraft(object):
         boom_con = self.boom_area * a[start, 1]
         for i in range(booms_triangle + 3 + 2 * self.n_arc_half + 3,
                        2 * booms_triangle + 3 + 2 * self.n_arc_half + 2, ):
+            upper = s12 + run * self.boom_spacing
             self.qb[0, i] = (-1 / self.Izz) * (self.t_sk * h * (
-                        (s12 + run * self.boom_spacing) - (s12 + run * self.boom_spacing) ** 2 / (
-                            2 * L_sk)) + boom_con) + qb_11 + qb_10
+                        (upper) - (upper) ** 2 / (2 * L_sk))
+                        + boom_con) + qb_11 + qb_10
 
-            print(x, '4th loop', s12)
+            print(x, '4th loop',s12 + run * self.boom_spacing)
             start += 1
             boom_con += self.boom_area * a[start, 1]
             x += 1
@@ -378,10 +379,9 @@ class Aircraft(object):
         # qb_13 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[2,1]) + qb_12
         # qb_14 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[3,1]) + qb_13
         # qb_15 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[4,1]) + qb_14
-        qb_16 = (-1 / self.Izz) * (self.t_sk * h * (L_sk / 2) + self.boom_area * a[start, 1]) + self.qb[
-            0, 2 * booms_triangle + 3 + 2 * self.n_arc_half + 2 - 1]
+        qb_16 = (-1 / self.Izz) * (self.t_sk * h * (L_sk / 2) + boom_con) + qb_11 + qb_10
         self.qb[0, 2 * booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_16
-        print(x, 'qb_16')
+        print(x, 'qb_16',boom_con)
 
         # # Redundant shear flow in left & right cell
         # # Computed by using matrices and solving for x
