@@ -102,13 +102,3 @@ def cubic_interpolator(coefficients, node, value, inter_node):
     d = coefficients[nodenumber]*hi*hi/6
     si = a*(xi-inter_node)**3+b*(inter_node-x_i)**3+(y_i-c)*(xi-inter_node)/hi+(yi-d)*(inter_node-x_i)/hi
     return si
-
-
-
-node = [1,2,3,4,5]
-value = [2,4,6,4,0]
-inter_value = 1.05#
-coefficients = cubic_coefficients(node,value)
-
-a = cubic_interpolator(coefficients, node, value, inter_value)
-print(a)
