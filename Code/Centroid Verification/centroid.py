@@ -122,7 +122,31 @@ class TestClass(object):
             self.cent = np.round(np.array([[np.sum(arr_z_y_a[0, :] * arr_z_y_a[2, :]) / np.sum([arr_z_y_a[2, :]])],
                                            [np.sum(arr_z_y_a[1, :] * arr_z_y_a[2, :]) / np.sum([arr_z_y_a[2, :]])]]), 9)
 
+    def plot_aileron(self, plot=True,step_n = 100):
+        theta_step = np.linspace(-np.pi / 2, np.pi / 2, step_n)
+        self.circ = np.row_stack(
+            ([np.cos(theta_step) * self.h / 2 - self.h / 2], [np.sin(theta_step) * self.h / 2]))  # circ[[z],[y]]
+        self.spar = np.row_stack(([np.ones(step_n) * - self.h / 2], [np.linspace(- self.h / 2, self.h / 2, step_n)]))
+        self.sk_up = np.row_stack(
+            ([np.linspace(-self.h / 2, -(self.C_a), step_n)], [np.linspace(self.h / 2, 0, step_n)]))
+        self.sk_down = np.row_stack(
+            ([np.linspace(-self.h / 2, -(self.C_a), step_n)], [np.linspace(-self.h / 2, 0, step_n)]))
+        self.lines   = np.hstack((self.circ, self.spar, self.sk_up, self.sk_down))
 
+
+        if plot:
+            plt.plot(self.circ[0, :], self.circ[1, :], 'black', label='skin')
+            plt.plot(self.spar[0, :], self.spar[1, :], 'blue', label='Spar')
+            plt.plot(self.sk_up[0, :], self.sk_up[1, :], 'black')
+            plt.plot(self.sk_down[0, :], self.sk_down[1, :], 'black')
+            plt.scatter(self.boom_loc_area[:, 0], self.boom_loc_area[:, 1], c='red', marker='D', label='Stiffners')
+            plt.title(self.name)
+            plt.xlabel('z axes [m]')
+            plt.ylabel('y axes [m]')
+            plt.legend()
+            plt.gca().invert_xaxis()
+            plt.grid()
+            plt.show()
 
 
 
@@ -161,22 +185,73 @@ f100 = TestClass("Fokker 100",
 print(f100.h)
 f100.booms()
 f100.centroid()
-print(f100.cent)
-print(f100.boom_loc_area)
-plt.scatter(f100.boom_loc_area[:,0]*1000,f100.boom_loc_area[:,1]*1000)
-plt.gca().invert_xaxis()
-plt.show()
+print("comp cent: ",f100.cent)
+print("boom_loc_area: ",f100.boom_loc_area)
+plt.scatter(f100.cent[0],f100.cent[1], label = "Centroid")
+f100.plot_aileron()
 
 #results of manual calc:
-     #    Arc    Spar      Plate
-Y = [ 0.0185,   0.05,     0.575,     0.575]
-A = [0.00316, 0.0001, 0.0009513, 0.0009513]
+     #      Arc    Spar      Plate      Plate
+Y = [-0.0184873,  -0.05,    -0.525,    -0.525]
+A = [ 0.0001555, 0.0001, 0.0009513, 0.0009513]
 
 
 cy = 0
 for i in range(len(Y)):
     cy+=(Y[i]*A[i])
+print("With mancalc: ",cy)
+print("With mancalc/A: ",cy/sum(A))
+cy+= sum(f100.boom_loc_area[:,0]*f100.boom_loc_area[:,2])
+print("With comp boom: ",cy)
+print("sum(A): ",sum(A))
+print("sum(f100.boom_loc_area[:,2]: ",sum(f100.boom_loc_area[:,2]))
 
-cy+= sum((f100.boom_loc_area[:,0]*-1)*f100.boom_loc_area[:,2])
 cy/=(sum(A)+sum(f100.boom_loc_area[:,2]))
-print 1-cy
+print("Final Cy: ",cy)
+
+print((f100.cent[0])/cy * 100)
+print((f100.cent[0]-cy)/cy * 100, "percent difference for 1 stringer")
+
+
+f100 = TestClass("Fokker 100", 
+                    1.,    # "Chord length aileron[m]"
+                    1.611,  # "Span of the aileron[m]
+                    0.125,  # "x-location of hinge 1 [m
+                    0.498,  # "x-location of hinge 2 [m 
+                    1.494,  # "x-location of hinge 3 [m
+                    24.5,   # "Distance between actuator 1 and 2
+                    10.,      # "Aileron height[m]"
+                    1.,      # "Skin thickness [m]"
+                    1.,      # "Spar thickness [m]"
+                    1.,      # "Thickness of stiffener[m]"
+                    1.,      # "Height of stiffener[m]"
+                    1.,      # "Width of stiffener[m]"
+                    5,     # "Number of stiffeners [-]"
+                    0.389,  # "Vertical displacement hinge 1[m]
+                    1.245,  # "Vertical displacement hinge 3[m]
+                    30,     # "Maximum upward deflection[deg]"
+                    49.2)   # "Load in actuator 2[N]
+print(f100.h)
+f100.booms()
+f100.centroid()
+print("comp cent: ",f100.cent)
+print("boom_loc_area: ",f100.boom_loc_area)
+plt.scatter(f100.cent[0],f100.cent[1], label = "Centroid")
+f100.plot_aileron()
+
+cy = 0
+for i in range(len(Y)):
+    cy+=(Y[i]*A[i])
+print("With mancalc: ",cy)
+print("With mancalc/A: ",cy/sum(A))
+cy+= sum(f100.boom_loc_area[:,0]*f100.boom_loc_area[:,2])
+print("With comp boom: ",cy)
+print("sum(A): ",sum(A))
+print("sum(f100.boom_loc_area[:,2]: ",sum(f100.boom_loc_area[:,2]))
+
+cy/=(sum(A)+sum(f100.boom_loc_area[:,2]))
+print("Final Cy: ",cy)
+
+print((f100.cent[0])/cy * 100)
+print((f100.cent[0]-cy)/cy * 100, "percent difference for 5 stringer")
+
