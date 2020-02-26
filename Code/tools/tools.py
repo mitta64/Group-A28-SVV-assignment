@@ -35,7 +35,7 @@ class Aircraft(object):
         self.d_1    = round(d_1/100,8)      #"Vertical displacement hinge 1[m]"
         self.d_3    = round(d_3/100,8)      #"Vertical displacement hinge 3[m]"
         self.theta  = theta                 #"Maximum upward deflection[deg]"
-        self.P      = round(0*1000,8)           #"Load in actuator 2[N]"
+        self.P      = round(P*1000,8)           #"Load in actuator 2[N]"
         # Material properties
         self.G      = 28 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa] is 28"
         self.E      = 73.1 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa] is 71.1"
@@ -883,7 +883,7 @@ def deflectionplot(plot, whichplot = None , totalnodes=15):
         return twist
     
     def torque(x): # plot 2
-        torque = 1*( eta*R1y*macaulay(x,x1,0) 
+        torque = -1*( eta*R1y*macaulay(x,x1,0) 
         + eta*R2y*macaulay(x,x2,0) 
         + eta*R3y*macaulay(x,x3,0) 
         - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,0) 
