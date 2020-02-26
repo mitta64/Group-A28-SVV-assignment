@@ -1,10 +1,31 @@
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+
+
 
 #Get nodes
-node_coordinates          = np.genfromtxt("B737.inp",skip_header = 9,skip_footer=7996,delimiter=',')
-node_coordinates          = node_coordinates[:,1:4]
+Displ_coordinates          = np.genfromtxt("B737.inp",skip_header = 9,skip_footer=7996,delimiter=',')
 Boundarynode_coordinates  = np.genfromtxt("B737.inp",skip_header = 14146, comments = "*",skip_footer=180,delimiter=',')
-Boundarynode_coordinates  = Boundarynode_coordinates[:,1:4]
+Elements   = np.genfromtxt("B737.inp",skip_header = 6598,skip_footer=1361,delimiter=',')
+
+#averaging the element coordinate
+num = 1
+Mises_coordinates= []
+for i in Elements:
+    xyz1         = Displ_coordinates[int(i[1])-1]
+    xyz2         = Displ_coordinates[int(i[2])-1]
+    xyz3         = Displ_coordinates[int(i[3])-1]
+    xyz4         = Displ_coordinates[int(i[4])-1]
+    xcoord       =  (xyz1[1]+xyz2[1]+xyz3[1]+xyz4[1])/4
+    ycoord       = (xyz1[2]+xyz2[2]+xyz3[2]+xyz4[2])/4
+    zcoord       =  (xyz1[3]+xyz2[3]+xyz3[3]+xyz4[3])/4
+    node_element = [num , xcoord, ycoord,zcoord]
+    Mises_coordinates.append(node_element)
+    num         += 1
+Mises_coordinates = np.array(Mises_coordinates)
+
 
 #Get all values
 Mises_bending1    = np.genfromtxt("B737.rpt",skip_header=20, skip_footer = 59956-5799-165)
@@ -41,5 +62,59 @@ Mises_straight[:,2] = (Mises_straight[:,2]+Mises_straight[:,3])/2
 Mises_straight[:,4] = (Mises_straight[:,4]+Mises_straight[:,5])/2
 Mises_straight      = np.delete(Mises_straight,(1,3,5),axis=1)
 
-#
 
+
+########################################
+
+#These are the final to be used arrays
+#ENTRY = [#node, x , y ,z , values]
+#Creating one array of points:Vonmises:shear
+Mises_shear_bending         = np.hstack((Mises_coordinates,Mises_bending[:,1:]))
+Mises_shear_Jam             = np.hstack((Mises_coordinates,Mises_Jam[:,1:]))
+Mises_shear_straight        = np.hstack((Mises_coordinates,Mises_straight[:,1:]))
+Displacement_bending        = np.hstack((Displ_coordinates,Displacement_bending1[:,1:]))
+Displacement_Jam            = np.hstack((Displ_coordinates,Displacement_Jam1[:,1:]))
+Displacement_straight       = np.hstack((Displ_coordinates,Displacement_straight1[:,1:]))
+Displacement_bending_nodes  = np.hstack((Boundarynode_coordinates,Displacement_bending_nodes[:,1:]))
+Displacement_Jam_nodes      = np.hstack((Boundarynode_coordinates,Displacement_Jam_nodes[:,1:]))
+Displacement_straight_nodes = np.hstack((Boundarynode_coordinates,Displacement_straight_nodes[:,1:]))
+Reaction_bending_nodes      = np.hstack((Boundarynode_coordinates,Reaction_bending_nodes[:,1:]))
+Reaction_Jam_nodes          = np.hstack((Boundarynode_coordinates,Reaction_Jam_nodes[:,1:]))
+Reaction_straight_nodes     = np.hstack((Boundarynode_coordinates,Reaction_straight_nodes[:,1:]))
+
+#sorting in x: 62 nodes per slice Mises, 61 nodes per slice Displacement, 108 slices
+Mises_shear_bending          = Mises_shear_bending[Mises_shear_bending[:,1].argsort()]
+Mises_shear_Jam              = Mises_shear_Jam[Mises_shear_Jam[:,1].argsort()]
+Mises_shear_straight         = Mises_shear_straight[Mises_shear_straight[:,1].argsort()]
+Displacement_bending         = Displacement_bending[Displacement_bending[:,1].argsort()]
+Displacement_Jam             = Displacement_Jam[Displacement_Jam[:,1].argsort()]
+Displacement_straight        = Displacement_straight[Displacement_straight[:,1].argsort()]
+Displacement_bending_nodes   = Displacement_bending_nodes[Displacement_bending_nodes[:,1].argsort()]
+Displacement_Jam_nodes       = Displacement_Jam_nodes[Displacement_Jam_nodes[:,1].argsort()]
+Displacement_straight_nodes  = Displacement_straight_nodes[Displacement_straight_nodes[:,1].argsort()]
+Reaction_bending_nodes       = Reaction_bending_nodes[Reaction_bending_nodes[:,1].argsort()]
+Reaction_Jam_nodes           = Reaction_Jam_nodes[Reaction_Jam_nodes[:,1].argsort()]
+Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:,1].argsort()]
+
+#slice funtions
+
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+xs = Mises_coordinates[:,1]
+ys = Mises_coordinates[:,2]
+zs = Mises_coordinates[:,3]
+color  = np.transpose(Mises_shear_bending[:,5]/max(Mises_shear_bending[:,5]))
+colour =[]
+for i in color:
+    zzz = [i,0,1-i]
+    colour.append(zzz)
+print(max(color))
+ax.scatter(xs, ys, zs,color = colour)
+
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+
+
+plt.show()
