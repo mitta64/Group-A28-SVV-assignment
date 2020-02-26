@@ -92,8 +92,7 @@ def integral_x(n,res=1000):
 
     if n == 1:
         x = np.linspace(0,1.611,len(solution))
-        plt.xlabel('x-axis')
-        plt.ylabel('z-axis')
+        plt.xlabel('z-axis')
         plt.plot(x,solution)
         plt.show()
         return solution
