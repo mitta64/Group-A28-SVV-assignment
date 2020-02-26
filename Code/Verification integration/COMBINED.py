@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 import copy
 
-from data import aero_data, grid, f100, transpose, nodes_z, nodes_x, times_z
+from data import aero_data, grid, f100, transpose
 from integrator import def_integral, indef_integral
 from interpolator import spline_coefficient, spline_interpolator
 
@@ -18,9 +18,12 @@ def integral_z(n,x_final=1.611,z_sc=None,res=1000):
     """ boundaries of the integration """
     x1 ,x2 = 0, 1.611
     z1, z2 = 0, 0.505
-    
     if z_sc != None:
-        newgrid = times_z(aero_data, nodes_z, z_sc)        
+        for row in range(len(newgrid)):
+            for element in range(len(newgrid[0])):
+                z = element*0.505/80
+                newgrid[row][element] = newgrid[row][element]*(z-z_sc)
+        
     
     #------------------ main program ---------------------------
     start_time = time.time() # to calculate runtime of the program
@@ -33,7 +36,7 @@ def integral_z(n,x_final=1.611,z_sc=None,res=1000):
         return y
 
     """ the function 'spline_coefficient(nodes,row)' converts an array of x-values (=nodes) and an array of y-values (=column of the aero_data) into a matrix. This matrix is necessary to use the function 'spline_interpolator'. (see interpolation file for explenation) """
-    nodes = nodes_z
+    nodes = np.linspace(z1,z2,len(newgrid[0]))
     solution = []
     for row in newgrid:
         matrix = spline_coefficient(nodes, row)
@@ -42,74 +45,63 @@ def integral_z(n,x_final=1.611,z_sc=None,res=1000):
         solution.append(a)
         """ The result is a 1D array of data corresponding to the values of the definite integrals of interpolated columns of the aero_data """
 
-    """ This can be used to check the results for when n=1 """
-    if n == 1:
-        x = np.linspace(0,1.611,len(solution))
-        plt.xlabel('x-axis')
-        plt.plot(x,solution)
-        plt.show()
-        return solution
-    
-    nodes = nodes_x
-    if n == 2:
-        matrix = spline_coefficient(nodes, solution)
-        solution = def_integral(spline_function,x1,x2,res)        
-
-    else:
+    if n > 2:
         for i in range(n-2):
+            nodes = np.linspace(x1,x2,len(solution))
             matrix = spline_coefficient(nodes, solution)
             solution = indef_integral(spline_function,x1,x2,res)
-            nodes = np.linspace(x1,x2,len(solution))
-
-        matrix = spline_coefficient(nodes, solution)
-        solution = def_integral(spline_function,x1,x2,res)
-
-    return solution
-        
-    end_time = time.time()
-    run_time = end_time - start_time   # print run_time to see the time it took the program to compute
-
-    return solution
-
-
-
-
-def integral_x(n,res=1000):
-    newgrid = copy.deepcopy(aero_data)
-    x1 ,x2 = 0, 1.611
-    z1, z2 = 0, 0.505
-
-    def spline_function(x):
-        y = spline_interpolator(matrix, nodes, x)
-        return y
-
-    nodes = nodes_x
-    solution = []
-    for row in newgrid:
-        matrix = spline_coefficient(nodes, row)
-        a = def_integral(spline_function,x1,x2,res)
-        solution.append(a)
-
-    if n == 1:
+            
+    """ This can be used to check the results for when n=1 (only integrated once w.r.t. z-axis) or an intermediate step of another integration"""
+    plot_to_show = 0   # Show the plot of the n'th integral. plot_to_show = 0 for no plots.
+    if n == 1 or n-1==plot_to_show:
         x = np.linspace(0,1.611,len(solution))
         plt.xlabel('x-axis')
         plt.ylabel('z-axis')
         plt.plot(x,solution)
         plt.show()
-        return solution
-        
-    nodes = nodes_z
-    if n == 2:
-        matrix = spline_coefficient(nodes, solution)
-        solution = def_integral(spline_function,z1,z2,res)        
 
-    else:
+    if n > 1:
+        nodes = np.linspace(x1,x2,len(solution))
+        matrix = spline_coefficient(nodes, solution)
+        solution = def_integral(spline_function,x1,x_final,res)
+
+
+    end_time = time.time()
+    run_time = end_time - start_time   # print run_time to see the time it took the program to compute
+       
+    return solution
+
+
+
+
+def integral_x(n,z_final=0.505,res=1000):
+    #--------------------- input data --------------------------------
+    x1 ,x2 = 0, 1.611
+    z1, z2 = 0, 0.505
+
+    #------------------ main program ---------------------------
+    def function(x):
+        y = spline_interpolator(matrix, nodes, x)
+        return y
+
+
+    nodes = np.linspace(x1,x2,len(aero_data[0]))
+    solution = []
+    for row in aero_data:
+        matrix = spline_coefficient(nodes, row)
+        a = def_integral(function,x1,x2,res)
+        solution.append(a)
+
+    if n > 2:
         for i in range(n-2):
-            matrix = spline_coefficient(nodes, solution)
-            solution = indef_integral(spline_function,z1,z2,res)
             nodes = np.linspace(z1,z2,len(solution))
+            matrix = spline_coefficient(nodes, solution)
+            solution = indef_integral(function,z1,z2,res)
+            
 
+    if n > 1:
+        nodes = np.linspace(z1,z2,len(solution))
         matrix = spline_coefficient(nodes, solution)
-        solution = def_integral(spline_function,z1,z2,res)
+        solution = def_integral(function,z1,z_final,res)
 
     return solution
