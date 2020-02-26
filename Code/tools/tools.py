@@ -435,12 +435,6 @@ class Aircraft(object):
         self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 1] += q0_2 + q0_1
 
 
-
-
-
-
-
-
         # # # qs = qb + qs_0
         # qs_1 = qb_1 + q0_2
         # qs_2 = qb_2 + q0_2 
@@ -651,21 +645,11 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
     mc = macaulay
     alpha = math.radians(alpha)  # convert from degrees to radians
 
-    def Alpha(a, b):
-        # helper function
-        return (Kz * np.sin(alpha) / 6 * mc(a, b, 3)
-                - L * Eta * z_sc * np.sin(alpha) * mc(a, b)
-                - L * Eta * h / 2 * np.cos(alpha) * mc(a, b))
-
-    #    def Alpha6810(a,b):
-    #        return   (Kz*np.sin(alpha)/6 *mc(a,b,3) -
-    #        L*Eta*z_sc*np.sin(alpha)   *mc(a,b) +
-    #        L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
-
-    #    def Alpha12(a,b):
-    #        return   (Kz*np.sin(alpha)/6 *mc(a,b,3) +
-    #            L*Eta*z_sc*np.sin(alpha)   *mc(a,b) +
-    #            L*Eta*h/2 *np.cos(alpha)   *mc(a,b))
+    def Alpha(a,b):
+    #helper function
+        return   ( Kz*np.sin(alpha)/6 *mc(a,b,3)
+            - L*Eta*z_sc*np.sin(alpha)   *mc(a,b) 
+            - L*Eta*h/2 *np.cos(alpha)   *mc(a,b) )
 
     def Beta(a):
         # Helper function; changing variable will be either x_1, x_2 or x_3
@@ -702,7 +686,7 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
                   [                0,                 0,                 0,                 Ky/6*mc(x_2, x_1, 3),                                    0,                 Ky/6*mc(x_2, x_3, 3), Ky*np.cos(alpha)/6 *mc(x_2, Ksi_1,3),                     0,             0,                   x_2,             1,                                   0],#Row 9
                   [  Gamma(x_3, x_1),   Gamma(x_3, x_2),                 0,                                    0,                                    0,                                    0,                    Alpha(x_3, Ksi_1),                   x_3,             1,                     0,             0,                                   Eta],#Row 10
                   [                0,                 0,                 0,                 Ky/6*mc(x_3, x_1, 3),                 Ky/6*mc(x_3, x_2, 3),                                    0, Ky*np.cos(alpha)/6 *mc(x_3, Ksi_1,3),                     0,             0,                   x_3,             1,                                   0],#Row 11
-                  [-1*Alpha(Ksi_1, x_1), -1*Alpha(Ksi_1, x_2), -1*Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_3,3),                                 0, -Ksi_1 * np.sin(alpha), -np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha),  z_sc*(np.sin(alpha)+h/2*np.cos(alpha))]#Row 1 2
+                  [-1*Alpha(Ksi_1, x_1), -1*Alpha(Ksi_1, x_2), -1*Alpha(Ksi_1, x_3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_1,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_2,3), Ky*np.cos(alpha)/6 *mc(Ksi_1, x_3,3),                                 0, -Ksi_1 * np.sin(alpha), -np.sin(alpha), Ksi_1 * np.cos(alpha), np.cos(alpha),  z_sc*(np.sin(alpha))+h/2*np.cos(alpha)]#Row 1 2
         ])
     b = np.array([[P*np.sin(alpha)+integral_z(2)],                              #Row 1
                   [P*np.cos(alpha)],                                            #Row 2
@@ -716,7 +700,7 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
                   [Beta(x_3) + d3 * np.cos(alpha)],                             #Row 10
                   [Ky*np.cos(alpha)/6*mc(x_3,Ksi_2,3)*P-d3*np.sin(alpha)],      #Row 11
                   [Delta(Ksi_1, Ksi_2)]])                                       #Row 12
-    
+
 
     return np.linalg.solve(A, b)
 
@@ -724,9 +708,8 @@ def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
 # =======================================================================================
 "Integration functions for z and x direction"
 
-
-def def_integral(f, x1, x2, res=10000):
-    interval = (x2 - x1) / res
+def def_integral(f,x1,x2,res=5000):
+    interval = (x2-x1)/res
     solution = 0
     a = f(x1)
     for e in range(res):
@@ -735,9 +718,8 @@ def def_integral(f, x1, x2, res=10000):
         a = b
     return solution
 
-
-def indef_integral(f, x1, x2, res=10000):
-    interval = (x2 - x1) / res
+def indef_integral(f,x1,x2,res=5000):
+    interval = (x2-x1)/res
     solution = []
     value = 0
     a = f(x1)
@@ -1019,7 +1001,14 @@ def v_deflection(x):
     Ri = unknowns[6][0]
     C1 = unknowns[7][0]
     C2 = unknowns[8][0]
-    v = Kz* (R1y/6*macaulay(x,x1,3) + R2y/6*macaulay(x,x2,3) + R3y/6*macaulay(x,x3,3) + Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) - P*np.sin(alpha)/6*macaulay(x,ksi2,3) - integral_z(5,x)) +C1*x + C2
+    v = ( Kz* (R1y/6*macaulay(x,x1,3) 
+        + R2y/6*macaulay(x,x2,3) 
+        + R3y/6*macaulay(x,x3,3) 
+        + Ri*np.sin(alpha)/6*macaulay(x,ksi1,3) 
+        - P*np.sin(alpha)/6*macaulay(x,ksi2,3) 
+        - integral_z(5,x)) 
+        + C1*x 
+        + C2 )
     
 
     return v
@@ -1042,8 +1031,14 @@ def w_deflection(x):
     Ri = unknowns[6][0]
     C3 = unknowns[9][0]
     C4 = unknowns[10][0]
-    w = Ky * (R1z / 6 * macaulay(x, x1, 3) + R2z / 6 * macaulay(x, x2, 3) + R3z / 6 * macaulay(x, x3, 3) + Ri * np.cos(
-        alpha) / 6 * macaulay(x, ksi1, 3) - P * np.cos(alpha) / 6 * macaulay(x, ksi2, 3)) + C3 * x + C4
+
+    w = ( Ky*( R1z/6* macaulay(x,x1,3) 
+        + R2z/6*macaulay(x,x2,3) 
+        + R3z/6*macaulay(x,x3,3) 
+        + Ri*np.cos(alpha)/6*macaulay(x,ksi1,3) 
+        - P*np.cos(alpha)/6*macaulay(x,ksi2,3)) 
+        + C3*x 
+        + C4 )
 
     return w
 
@@ -1074,7 +1069,7 @@ def twist(x):
 
     C5 = unknowns[-1][0]
     
-    twist = -1*( L* ( eta*R1y*macaulay(x,x1,1) 
+    twist = ( L* ( eta*R1y*macaulay(x,x1,1) 
     + eta*R2y*macaulay(x,x2,1) 
     + eta*R3y*macaulay(x,x3,1) 
     - zsc*Ri*np.sin(alpha)*macaulay(x,ksi1,1) 
