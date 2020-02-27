@@ -360,6 +360,92 @@ class Aircraft(object):
 
 
     #def shear_centre(self):
+    
+    def dtheta_dx(self):
+        n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
+        qb               = self.flow_from_shear()
+        n_steps_circ     = (self.n_arc_half*2+1)+1  #number of steps in semicircle
+        
+
+        # Cell 1 (circle) going from the cut downwards
+        Area_1 = np.pi *(self.h/2)**2 /2
+        int_start_pos = n_booms_triangle + 2
+
+        # spa_ar 1st half
+        int_qb_1   = (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
+        int_qs_circ_01       = self.h/(2*self.t_sp)
+        int_qs_circ_02       = - self.h/(2*self.t_sp)
+
+        # cir
+        q_start     = qb[0, int_start_pos - 1] + qb[0, int_start_pos - 2]  # shear flow at begining of integration
+        int_qb_circ = (q_start + qb[0, int_start_pos]) / 2 * qb[1, int_start_pos] * self.h / (2*self.t_sk)  # integration start
+        
+        for i in range(int_start_pos, int_start_pos + n_steps_circ):
+            int_qb_circ += (qb[0, i] + qb[0, i + 1]) / 2 * qb[1, i + 1] /(self.t_sk)
+
+        int_qs_circ_01 += np.pi * (self.h/2)**2/(2*self.t_sk)
+
+         # spar 2nd half
+        int_qb_circ        += (self.qb[0, n_booms_triangle + 2] * self.h / 2) / (2 * self.t_sp)  # line integral of qb/t
+        int_qs_circ_01      += self.h / (2 * self.t_sp) #sign flipped for triangular side
+        int_qs_circ_02      += - self.h / (2 * self.t_sp)
+
+        #Cell 2 (Triangle) Going from cut downwards:
+        #Area_2 = (self.C_a-h)*h
+
+        int_qb_tri      = 0
+        q_curr          = 0
+        q_last          = 0
+
+        for i in range(n_booms_triangle):
+            q_curr           = (self.qb[0,i] + q_last) /2
+            int_qb_tri      += q_curr*self.qb[1,i]/ (self.t_sk)
+            q_last           = self.qb[0,i]
+
+        q_curr          = 0
+        q_last          = 0
+
+        n_start         = -n_booms_triangle-1
+        int_qb_tri   += (self.qb[0,n_start-2]+
+                            self.qb[0,n_start-1]+
+                            self.qb[0,n_start])*self.qb[1,n_start]/(2*self.t_sk)
+        n_start         += 1
+
+        for i in range(len(self.qb[0])+n_start,len(self.qb[0])):
+            print(self.qb[0,i],self.qb[0,i-1],self.qb[1,i])
+            int_qb_tri   += (self.qb[0,i]+
+                                self.qb[0,i-1])*self.qb[1,i]/(2*self.t_sk)
+        
+        int_qs_tri_02     = 2* ((self.C_a - self.h/2)**2 + (self.h/2)**2)**0.5 / self.t_sk
+
+        # spar 1st half
+        int_qb_tri         += (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
+        int_qs_tri_01       = - self.h/(2*self.t_sp)
+        int_qs_tri_02      += self.h/(2*self.t_sp)
+
+        # spar 2nd half
+        int_qb_tri      += (self.qb[0, n_booms_triangle + 2] * self.h / 2) / (2 * self.t_sp)  # line integral of qb/t
+        int_qs_tri_01       += - self.h / (2 * self.t_sp) 
+        int_qs_tri_02       += self.h / (2 * self.t_sp)
+
+        print(int_qb_circ)
+        print(int_qs_circ_01)
+        print(int_qs_circ_02)
+
+        print(int_qb_tri)
+        print(int_qs_tri_01)
+        print(int_qs_tri_02)
+                        #qs_1             qs2
+        A = np.array([[int_qs_circ_01,int_qs_circ_02],
+                      [int_qs_tri_01,int_qs_tri_02]])
+
+
+        b = np.array([[-int_qb_circ],
+                      [-int_qb_tri ]])
+        qs01, qs02 =  np.linalg.solve(A,b)
+        return qs01, qs02
+
+
     def moment_flow_from_shear_mid_spar(self):
         qb = self.flow_from_shear()
        ## moment is taken around y=0 at the spar
@@ -391,71 +477,6 @@ class Aircraft(object):
             M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
         M_2 = M_2 * 2                                                    #Due to symmetry
 
-    def dtheta_dx(self):
-        n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
-        qb               = self.flow_from_shear()
-        # Cell 1 (circle) going from the cut downwards
-        Area_1 = np.pi *(self.h/2)**2 /2
-        int_start_pos = n_booms_triangle + 2
-
-        # spa_ar 1st half
-        int_qb_sp_low   = (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
-        int_qs_01       = self.h/(2*self.t_sp)
-        int_qs_02       = - self.h/(2*self.t_sp)
-
-         # cir
-
-        q_start     = qb[0, int_start_pos - 1] + q[0, int_start_pos - 2]  # shear flow at begining of integration
-        int_qb_circ = (q_start + qb[0, int_start_pos]) / 2 * qb[1, int_start_pos] * self.h / (2*self.t_sk)  # integration start
-        
-        for i in range(int_start_pos, int_start_pos + n_steps_circ):
-            int_qb_circ += (qb[0, i] + qb[0, i + 1]) / 2 * qb[1, i + 1] /(self.t_sk)
-
-        int_qs_01 += np.pi * (self.h/2)**2/(2*self.t_sk)
-
-         # spar 2nd half
-
-        int_qb_sp_low   += (self.qb[0, n_booms_triangle + 2] * self.h / 2) / (2 * self.t_sp)  # line integral of qb/t
-        int_qs_01       += self.h / (2 * self.t_sp) #sign flipped for triangular side
-        int_qs_02       += - self.h / (2 * self.t_sp)
-
-        #Cell 2 (Triangle) Going from cut downwards:
-        Area_2 = (self.C_a-h)*h
-
-        int_qb_tri_low  = 0
-        q_curr          = 0
-        q_last          = 0
-
-        for i in range(n_booms_triangle):
-            q_curr          = (self.qb[0,i] + q_last) /2
-            int_qb_tri_low   += q_curr*self.qb[1,i]/ (self.t_sk)
-            q_last          = self.qb[0,i]
-
-        int_qb_tri_up   = 0
-        q_curr          = 0
-        q_last          = 0
-
-        for i in range(n_booms_triangle):
-            q_curr          = (self.qb[0,-i] + q_last) /2
-            int_qb_tri_low   += q_curr*self.qb[1,-i]/ (self.t_sk)
-            q_last          = self.qb[0,-i]
-
-        print("int_qb_tri_low: ",int_qb_tri_low)
-        print("int_qb_tri_up: ",int_qb_tri_up)
-
-
-        # spa_ar 1st half
-        int_qb_tri_low   += (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
-        int_qs_01       = - self.h/(2*self.t_sp)
-        int_qs_02       = self.h/(2*self.t_sp)
-
-        # spar 2nd half
-        int_qb_tri_low   += (self.qb[0, n_booms_triangle + 2] * self.h / 2) / (2 * self.t_sp)  # line integral of qb/t
-        int_qs_01       += - self.h / (2 * self.t_sp) 
-        int_qs_02       += self.h / (2 * self.t_sp)
-
-
-         
 
 
     def shear_centre(self):
