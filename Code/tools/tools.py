@@ -247,9 +247,11 @@ class Aircraft(object):
         spar_locations = np.where(qb == self.h/2)[1]
 
         cell_1 = self.qb[:,5:10] #From spar cut along circ to spar cut
-        cell_2 = np.hstack(qb[:,0:spar_locations[0]+1], #from TE cut via lower to spar cut
-                 np.fliplr(qb[:,spar_locations[1]:]))#from spar cut via upper to TE cut
-        return cell_1, cell_2
+        cell_2 = np.hstack((qb[:,0:spar_locations[0]+1], #from TE cut via lower to spar cut
+                            qb[:,spar_locations[1]:]
+                          ))#from spar cut via upper to TE cut
+        
+        return (cell_1, cell_2)
 
         
     def flow_from_shear(self,V=1):
@@ -391,6 +393,7 @@ class Aircraft(object):
 
     def dtheta_dx(self):
         n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
+        qb               = self.flow_from_shear()
         # Cell 1 (circle) going from the cut downwards
         Area_1 = np.pi *(self.h/2)**2 /2
         int_start_pos = n_booms_triangle + 2
@@ -404,6 +407,7 @@ class Aircraft(object):
 
         q_start     = qb[0, int_start_pos - 1] + q[0, int_start_pos - 2]  # shear flow at begining of integration
         int_qb_circ = (q_start + qb[0, int_start_pos]) / 2 * qb[1, int_start_pos] * self.h / (2*self.t_sk)  # integration start
+        
         for i in range(int_start_pos, int_start_pos + n_steps_circ):
             int_qb_circ += (qb[0, i] + qb[0, i + 1]) / 2 * qb[1, i + 1] /(self.t_sk)
 
@@ -416,9 +420,42 @@ class Aircraft(object):
         int_qs_02       += - self.h / (2 * self.t_sp)
 
         #Cell 2 (Triangle) Going from cut downwards:
-        
+        Area_2 = (self.C_a-h)*h
+
+        int_qb_tri_low  = 0
+        q_curr          = 0
+        q_last          = 0
+
+        for i in range(n_booms_triangle):
+            q_curr          = (self.qb[0,i] + q_last) /2
+            int_qb_tri_low   += q_curr*self.qb[1,i]/ (self.t_sk)
+            q_last          = self.qb[0,i]
+
+        int_qb_tri_up   = 0
+        q_curr          = 0
+        q_last          = 0
+
+        for i in range(n_booms_triangle):
+            q_curr          = (self.qb[0,-i] + q_last) /2
+            int_qb_tri_low   += q_curr*self.qb[1,-i]/ (self.t_sk)
+            q_last          = self.qb[0,-i]
+
+        print("int_qb_tri_low: ",int_qb_tri_low)
+        print("int_qb_tri_up: ",int_qb_tri_up)
 
 
+        # spa_ar 1st half
+        int_qb_tri_low   += (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
+        int_qs_01       = - self.h/(2*self.t_sp)
+        int_qs_02       = self.h/(2*self.t_sp)
+
+        # spar 2nd half
+        int_qb_tri_low   += (self.qb[0, n_booms_triangle + 2] * self.h / 2) / (2 * self.t_sp)  # line integral of qb/t
+        int_qs_01       += - self.h / (2 * self.t_sp) 
+        int_qs_02       += self.h / (2 * self.t_sp)
+
+
+         
 
 
     def shear_centre(self):
