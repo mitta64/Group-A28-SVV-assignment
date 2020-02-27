@@ -291,16 +291,14 @@ class Aircraft(object):
         boom_con = self.boom_area * a[start + 1, 1]
         for i in range(1, booms_triangle):
             self.qb[0, i] = (-1 / self.Izz) * (
-                        -self.t_sk * (h / L_sk) * ((f100.boom_spacing * (1 + i * 2) / 2) ** 2 / 2) + boom_con) + \
-                            self.qb[0, i - 1]
+                        -self.t_sk * (h / L_sk) * ((f100.boom_spacing * (1 + i * 2) / 2) ** 2 / 2) + boom_con)
             # qb_2 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[6,1]) + qb_1
             # qb_3 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[7,1]) + qb_2
             # qb_4 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[8,1]) + qb_3
-            print(x, '1st loop', start + i, a[start + 1, 1], 'boomcon', boom_con)
+            print(x, '1st loop', start + i, a[start + 1, 1], 'boomcon', boom_con,self.boom_area * a[start + i, 1] )
             boom_con += self.boom_area * a[start + i + 1, 1]
             x += 1
-        qb_5 = (-1 / self.Izz) * (-self.t_sk * (h / L_sk) * ((L_sk ** 2) / 2) + boom_con) + self.qb[
-            0, booms_triangle - 1]
+        qb_5 = (-1 / self.Izz) * (-self.t_sk * (h / L_sk) * ((L_sk ** 2) / 2) + boom_con)
         self.qb[0, booms_triangle] = qb_5
         print(x, 'qb_5', boom_con)
         x += 1
@@ -357,8 +355,7 @@ class Aircraft(object):
         print(x, 'qb_11')
         x += 1
         # Shear flow top triangle
-        qb_12 = (-1 / self.Izz) * (self.t_sk * h * (s12 - ((s12) ** 2 / (2 * L_sk)))) + self.qb[
-            0, booms_triangle + 3 + 2 * self.n_arc_half] + self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 1]
+        qb_12 = (-1 / self.Izz) * (self.t_sk * h * (s12 - ((s12) ** 2 / (2 * L_sk)))) + qb_11 + qb_10
         self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_12
         print(x, 'qb_12', qb_12, s12)
         x += 1
