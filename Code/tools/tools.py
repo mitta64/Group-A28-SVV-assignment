@@ -376,9 +376,13 @@ class Aircraft(object):
         n_steps_tri = n_booms_triangle + 1
         M_2 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* self.h/2
 
-        for i in range(int_start_pos,int_start_pos+n_steps_circ):
+        for i in range(int_start_pos,int_start_pos+n_steps_tri):
             M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
+        M_2 = M2 * 2                                                    #Due to symmetry
 
+    def dtheta_dx(self):
+        # Cell 1 (circle)
+        a_1 = np.pi *(self.h/2)**2 /2
 
 
     def shear_centre(self):
