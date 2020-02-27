@@ -393,6 +393,7 @@ class Aircraft(object):
         n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
         # Cell 1 (circle) going from the cut downwards
         Area_1 = np.pi *(self.h/2)**2 /2
+        int_start_pos = n_booms_triangle + 2
 
         # spa_ar 1st half
         int_qb_sp_low   = (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
@@ -620,6 +621,7 @@ class Aircraft(object):
         plt.title(self.name )
         plt.xlabel('z axes [m]')
         plt.ylabel('y axes [m]')
+        plt.gca().invert_xaxis()
         plt.legend()
         plt.grid()
         plt.show()
