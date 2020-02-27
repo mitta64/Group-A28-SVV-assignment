@@ -39,6 +39,11 @@ class Aircraft(object):
         # Material properties
         self.G      = 28 * 10**9            #"Shear Modulus of Aluminium 2024-T3 [Pa] is 28"
         self.E      = 73.1 * 10**9          #"Elasticity Modulus of Aluminium 2024-T3 [Pa] is 71.1"
+        f100.booms()
+        f100.centroid()
+        f100.second_moi()
+        f100.torsional_stiffness()
+        
     def description(self):
 
         prop = vars(self)
@@ -237,7 +242,7 @@ class Aircraft(object):
     #========================
 
     def cell_lists(self):
-        qb = self.(flow_from_shear())
+        qb = self.flow_from_shear()
 
         spar_locations = np.where(qb == self.h/2)[1]
 
