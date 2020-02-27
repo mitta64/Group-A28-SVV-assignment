@@ -235,8 +235,6 @@ a=interpolate_val(Mises_shear_bending,62,50,4,[-54,-250])
 
 
 
-
-
 #figures for halfway the aileron
 #Bending
 
@@ -265,18 +263,24 @@ axs[0,1].scatter(ys,zs, c = np.array(Displacement_bending[53*61:54*61,4]),cmap =
 
 plt.show()
 
-"""
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 xs = np.array(Mises_shear_bending[:,1])
 ys = np.array(Mises_shear_bending[:,2])
 zs = np.array(Mises_shear_bending[:,3])
 print(ys)
-ax.scatter(xs,ys, zs, c = np.array(Mises_shear_bending[:,4]),cmap = "seismic")
+ax.scatter(xs,ys, zs, c = np.array(Mises_shear_bending[:,5]),cmap = "seismic")
 #plt.scatter(ys, zs, c = np.array(Mises_shear_bending[50*62:51*62,4]),cmap = "seismic")
 #plt.colorbar()
-"""
 
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+xs = np.array(Displacement_Jam[:,1])
+ys = np.array(Displacement_Jam[:,2])
+zs = np.array(Displacement_Jam[:,3])
+print(ys)
+ax.scatter(xs,ys, zs, c = np.array(Displacement_Jam[:,4]),cmap = "seismic")
 
 plt.show()
 
@@ -284,5 +288,6 @@ plt.show()
 
 #----------------------------------------------------------------------------------------
 #Error calculations:
-
-err = Mises_shear_bending/NumresMises_shear
+NumresMises_shear = []
+#err = (NumresMises_shear-Mises_shear_bending)
+#err = np.linalg.norm
