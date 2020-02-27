@@ -235,6 +235,19 @@ class Aircraft(object):
     #========================       
     #Compute Shear Centre
     #========================
+
+    def cell_lists(self):
+        try self.qb:
+            pass
+        except:
+            self.(flow_from_shear())
+
+        spar_locations = np.where(self.qb == self.h/2)[1]
+
+        cell_1 = self.qb[:,5:10] #From spar cut along circ to spar cut
+        cell_2 = np.hstack(self.qb[:,0:spar_locations[0]+1], #from TE cut via lower to spar cut
+                 np.fliplr(self.qb[:,spar_locations[1]:]))#from spar cut via upper to TE cut
+
     def flow_from_shear(self,V=1):
         """Finds shear flow due to force V without q0,1/2 condistribution"""
         h       = self.h / 2                                # Radius of semi-cirle
@@ -256,27 +269,34 @@ class Aircraft(object):
 
         # Shear flow bottom triangle
         start   = int(((self.n_st - 1) / 2))
-        self.qb = np.zeros(shape=(1, (self.n_st + 5)))
+        self.qb = np.zeros(shape=(2, (self.n_st + 5)))
+                    #First row codes shear flow
+                    #Second row codes web length
         qb_1    = (-V / self.Izz) * ((-self.t_sk * h * (0.5 * self.boom_spacing)**2) / (2 * L_sk))
         
         self.qb[0, 0]   = qb_1
+        self.qb[1, 0]   = self.boom_spacing/2
         boom_con        = self.boom_area * a[start + 1, 1]
         
         for i in range(1, booms_triangle):
             self.qb[0, i] = (-V / self.Izz) * (
                     -self.t_sk * (h / L_sk) * ((self.boom_spacing * (1 + i * 2) / 2) ** 2 / 2) + boom_con)
+            self.qb[1, i] = self.boom_spacing
             boom_con += self.boom_area * a[start + i + 1, 1]
             
         qb_5 = (-V / self.Izz) * (-self.t_sk * (h / L_sk) * ((L_sk ** 2) / 2) + boom_con)
         self.qb[0, booms_triangle] = qb_5
+        self.qb[1, booms_triangle] = self.boom_spacing/2
 
         # Shear flow spar
         qb_6 = (-V / self.Izz) * (-(self.t_sp * (h) ** 2) / (2))
-        self.qb[0, booms_triangle + 1] = qb_6
+        self.qb[0, booms_triangle + 1]  = qb_6
+        self.qb[1, booms_triangle + 1]  = h
 
         # Shear flow semi-circle
         qb_7 = (-V / self.Izz) * (self.t_sk * (h) ** 2 * (-np.cos(theta_7 - np.pi / 2))) + qb_5 + qb_6
         self.qb[0, booms_triangle + 2] = qb_7
+        self.qb[1, booms_triangle + 2] = self.boom_spacing / 2
         
         runs = 1
         start = start + booms_triangle + 1
@@ -287,6 +307,7 @@ class Aircraft(object):
                         np.cos(theta_7 - np.pi / 2 + (runs - 1) * self.angle_arc)) 
                 + self.boom_area * a[start, 1]
                 ) + self.qb[0, i - 1])
+            self.qb[1, i] = self.boom_spacing
             runs += 1
 
         start = 0
@@ -327,9 +348,11 @@ class Aircraft(object):
         qb_16 = (-V / self.Izz) * (self.t_sk * h * (L_sk / 2) + boom_con) + qb_11 + qb_10
         self.qb[0, 2 * booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_16
         
+        self.qb[1]+=self.qb[1][::-1]
+
         return self.qb
 
-    def shear_centre(self):
+    #def shear_centre(self):
 
 
 
@@ -547,13 +570,13 @@ f100 = Aircraft("Fokker 100", 0.505, 1.611, 0.125, 0.498, 1.494, 24.5, 16.1, 1.1
 # Assign all required properties to one term
 # Replace 'f100' when analysing a different aircraft
 #====================================================
-f100.booms()
-f100.centroid()
-f100.second_moi()
-f100.shear_centre()
-f100.torsional_stiffness()
-#I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
-I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E, -0.08553893540215983] # testing true data
+# f100.booms()
+# f100.centroid()
+# f100.second_moi()
+# f100.shear_centre()
+# f100.torsional_stiffness()
+# #I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
+# I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E, -0.08553893540215983] # testing true data
 #=======================================================================================
 
 # def macaulay(x, x_n, pwr=1):

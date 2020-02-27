@@ -17,7 +17,7 @@ A320 = Aircraft("Airbus A320", 0.547, 2.771, 0.153, 1.281, 2.681, 28., 22.5, 1.1
 f100.booms()
 f100.centroid()
 f100.second_moi()
-f100.shear_centre()
+#f100.shear_centre()
 f100.torsional_stiffness()
 #I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
 #=======================================================================================
@@ -25,13 +25,13 @@ f100.torsional_stiffness()
 I = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E,
      -0.08553893540215983]  # testing true data
 # =======================================================================================
-print([f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z])
+# print([f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z])
 
-unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
+# unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
 
-v_def = []
-X = np.linspace(0,1,10)
-for x in X:
-	v_def.append(v_deflection(x, unknowns,f100))
-plt.plot(X,v_def)#,'v_deflection', 'm')
-plt.show()
+# v_def = []
+# X = np.linspace(0,1,10)
+# for x in X:
+# 	v_def.append(v_deflection(x, unknowns,f100))
+# plt.plot(X,v_def)#,'v_deflection', 'm')
+# plt.show()
