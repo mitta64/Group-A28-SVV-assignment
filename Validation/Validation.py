@@ -102,7 +102,7 @@ def interpolate_val(Data, numxentries, nodex, valueentry, inter_node):
     spar  = spar[spar[:,2].argsort()]
     upper = upper[upper[:,3].argsort()]
     lower = lower[lower[:,3].argsort()]
-    print(lower)
+    #print(lower)
     #chord = np.vstack((np.array(lower),np.array(upper)))
     chordcoord = [0]
     dis = 0
@@ -132,7 +132,7 @@ def interpolate_val(Data, numxentries, nodex, valueentry, inter_node):
     return Fr
 
 
-
+#-----------------------------------------------------------------------------------------------------------------------------------
 
 
 #Get nodes
@@ -194,7 +194,7 @@ Mises_straight      = np.delete(Mises_straight,(1,3,5),axis=1)
 
 
 
-########################################
+#-----------------------------------------------------------------------------------------------------------------------
 
 #These are the final to be used arrays
 #ENTRY = [#node, x , y ,z , values]
@@ -233,28 +233,56 @@ Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:
 #Data, numxentries, nodex, valueentry, inter_node
 a=interpolate_val(Mises_shear_bending,62,50,4,[-54,-250])
 
-print(a)
 
 
 
-#slice funtions
+
+#figures for halfway the aileron
+#Bending
+
+ys = np.array(Mises_shear_bending[53*62:54*62,2])
+zs = np.array(Mises_shear_bending[53*62:54*62,3])
+
+fig, axs = plt.subplots(2, 2)
+
+axs[0,0].scatter(ys,zs, c = np.array(Mises_shear_bending[53*62:54*62,4]),cmap = "seismic")
+#axs[0,0].colorbar()
 
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-xs = Mises_coordinates[:,1]
-ys = Mises_coordinates[:,2]
-zs = Mises_coordinates[:,3]
-#color  = np.transpose(Mises_shear_bending[:,4]/max(Mises_shear_bending[:,4]))
-#colour =[]
-#for i in color:
-  #   colour.append(zzz)
-#print(max(color))
-ax.scatter(xs, ys, zs,c = Mises_shear_bending[:,4])
+axs[1,0].scatter(ys,zs, c = np.array(Mises_shear_bending[53*62:54*62,5]),cmap = "seismic")
+#axs[1,0].colorbar()
 
-ax.set_xlabel('X Label')
-ax.set_ylabel('Y Label')
-ax.set_zlabel('Z Label')
+ys = np.array(Displacement_bending[53*61:54*61,2])
+zs = np.array(Displacement_bending[53*61:54*61,3])
+
+
+axs[0,1].scatter(ys,zs, c = np.array(Displacement_bending[53*61:54*61,4]),cmap = "seismic")
+#axs[0,1].colorbar()
+
+
+
 
 
 plt.show()
+
+"""
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+xs = np.array(Mises_shear_bending[:,1])
+ys = np.array(Mises_shear_bending[:,2])
+zs = np.array(Mises_shear_bending[:,3])
+print(ys)
+ax.scatter(xs,ys, zs, c = np.array(Mises_shear_bending[:,4]),cmap = "seismic")
+#plt.scatter(ys, zs, c = np.array(Mises_shear_bending[50*62:51*62,4]),cmap = "seismic")
+#plt.colorbar()
+"""
+
+
+plt.show()
+
+
+
+#----------------------------------------------------------------------------------------
+#Error calculations:
+
+err = Mises_shear_bending/NumresMises_shear
