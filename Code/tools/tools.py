@@ -235,8 +235,7 @@ class Aircraft(object):
     #========================       
     #Compute Shear Centre
     #========================
-    def shear_centre(self):
-
+    def flow_from_shear(self): #shear flow due to v without q0,1/2 condistribution
         # Radius of semi-cirle
         h = self.h / 2
         # Length of triangular section
@@ -248,33 +247,13 @@ class Aircraft(object):
         a = self.boom_loc_area
 
         # Shear flows [N/m]
-        'Old method'
-        # Shear flow in bottom triangular section
-        # qb_3 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2)  + self.boom_area * a[6,1] + self.boom_area * a[7,1] + self.boom_area * a[8,1] + self.boom_area * a[9,1])
-        # # Shear flow in bottom part spar
-        # qb_4 = (-1 / self.Izz) * (self.t_sp * (h**2) / 2 )
-        # # Shear flow in semi-circle
-        # qb_5 = (-1 / self.Izz) * (-self.t_sk * h * (L_sk/2)
-        #         - self.t_sp * (h**2) / 2  + self.boom_area * a[1,1] + self.boom_area * a[6,1] + self.boom_area * a[7,1] + self.boom_area * a[8,1] + self.boom_area * a[9,1] + self.boom_area * a[10,1])
-        # # Shear flow in top part spar
-        # qb_1 = qb_4
-        # # Shear flow in upper triangular section
-        # qb_2 = (-1 / self.Izz) * (self.t_sk * h * (L_sk/2) + self.boom_area * a[1,1] +
-        #         self.boom_area * a[2,1] + self.boom_area * a[3,1] +
-        #         self.boom_area * a[4,1] + self.boom_area * a[5,1] +
-        #         self.boom_area * a[6,1] + self.boom_area * a[7,1] +
-        #         self.boom_area * a[8,1] + self.boom_area * a[9,1] +
-        #         self.boom_area * a[10,1])
-        'New method'
+
         # Define theta values
         theta_7 = (np.pi / 2 - self.angle_arc * self.n_arc_half)
-        theta = (np.pi / 2) - theta_7
-        theta_8 = 0
+
         theta_9 = np.pi - theta_7
         booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
         s12 = L_sk - (booms_triangle - 0.5) * self.boom_spacing
-        s10 = self.boom_spacing - s12
-        s5 = s12
 
         # Number of booms in the bottom triangle,
         # which is equal to the number of booms in the top triangle
@@ -291,11 +270,9 @@ class Aircraft(object):
         boom_con = self.boom_area * a[start + 1, 1]
         for i in range(1, booms_triangle):
             self.qb[0, i] = (-1 / self.Izz) * (
-                        -self.t_sk * (h / L_sk) * ((f100.boom_spacing * (1 + i * 2) / 2) ** 2 / 2) + boom_con)
-            # qb_2 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[6,1]) + qb_1
-            # qb_3 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[7,1]) + qb_2
-            # qb_4 = (-1/self.Izz) * ((-self.t_sk * h * (self.boom_spacing)**2) / (2 * L_sk) + self.boom_area * a[8,1]) + qb_3
-            print(x, '1st loop', start + i, a[start + 1, 1], 'boomcon', boom_con,self.boom_area * a[start + i, 1] )
+                    -self.t_sk * (h / L_sk) * ((f100.boom_spacing * (1 + i * 2) / 2) ** 2 / 2) + boom_con)
+
+            print(x, '1st loop', start + i, a[start + 1, 1], 'boomcon', boom_con, self.boom_area * a[start + i, 1])
             boom_con += self.boom_area * a[start + i + 1, 1]
             x += 1
         qb_5 = (-1 / self.Izz) * (-self.t_sk * (h / L_sk) * ((L_sk ** 2) / 2) + boom_con)
@@ -303,7 +280,7 @@ class Aircraft(object):
         print(x, 'qb_5', boom_con)
         x += 1
         # Shear flow spar
-        qb_6 = (-1 / self.Izz) * (-(self.t_sp * (h) ** 2) / (2))  # flipped sign !!!
+        qb_6 = (-1 / self.Izz) * (-(self.t_sp * (h) ** 2) / (2))
         self.qb[0, booms_triangle + 1] = qb_6
         print(x, 'qb_6')
         x += 1
@@ -318,8 +295,8 @@ class Aircraft(object):
         start = start + booms_triangle + 1
         for i in range(booms_triangle + 3, booms_triangle + 3 + self.n_arc_half):
             self.qb[0, i] = (-1 / self.Izz) * (self.t_sk * (h) ** 2 * (
-                        -np.cos(theta_7 - np.pi / 2 + runs * self.angle_arc) + np.cos(
-                    theta_7 - np.pi / 2 + (runs - 1) * self.angle_arc)) + self.boom_area * a[start, 1]) + self.qb[
+                    -np.cos(theta_7 - np.pi / 2 + runs * self.angle_arc) + np.cos(
+                theta_7 - np.pi / 2 + (runs - 1) * self.angle_arc)) + self.boom_area * a[start, 1]) + self.qb[
                                 0, i - 1]
             start += 1
 
@@ -332,18 +309,17 @@ class Aircraft(object):
         runs = 1
         for i in range(booms_triangle + 3 + self.n_arc_half, booms_triangle + 3 + 2 * self.n_arc_half):
             self.qb[0, i] = (-1 / self.Izz) * (self.t_sk * (h) ** 2 * (
-                        -np.cos(theta_7 - np.pi / 2 + (runs + 1) * self.angle_arc) + np.cos(
-                    theta_7 - np.pi / 2 + (runs) * self.angle_arc)) + self.boom_area * a[start, 1]) + self.qb[0, i - 1]
+                    -np.cos(theta_7 - np.pi / 2 + (runs + 1) * self.angle_arc) + np.cos(
+                theta_7 - np.pi / 2 + (runs) * self.angle_arc)) + self.boom_area * a[start, 1]) + self.qb[0, i - 1]
             start += 1
 
             print(x, '3rd loop', 'upper', theta_7 - np.pi / 2 + (runs + 1) * self.angle_arc, 'lower',
                   theta_7 - np.pi / 2 + (runs) * self.angle_arc, self.qb[0, i])
             runs += 1
             x += 1
-        # qb_8 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos(theta_8) + np.cos((-np.pi / 2) + theta_7)) + self.boom_area * a[10,1]) + qb_7
-        # qb_9 = (-1/self.Izz) * (self.t_sk * (h)**2 * (-np.cos((np.pi / 2) - theta_9) + np.cos(theta_8))) + qb_8
+
         qb_10 = (-1 / self.Izz) * (
-                    self.t_sk * (h) ** 2 * (np.cos((np.pi / 2) - theta_9)) + self.boom_area * a[start, 1]) + self.qb[
+                self.t_sk * (h) ** 2 * (np.cos((np.pi / 2) - theta_9)) + self.boom_area * a[start, 1]) + self.qb[
                     0, booms_triangle + 3 + 2 * self.n_arc_half - 1]
         self.qb[0, booms_triangle + 3 + 2 * self.n_arc_half] = qb_10
         print(x, 'qb_10')
@@ -365,20 +341,22 @@ class Aircraft(object):
                        2 * booms_triangle + 3 + 2 * self.n_arc_half + 2, ):
             upper = s12 + run * self.boom_spacing
             self.qb[0, i] = (-1 / self.Izz) * (self.t_sk * h * (
-                        (upper) - (upper) ** 2 / (2 * L_sk))
-                        + boom_con) + qb_11 + qb_10
+                    (upper) - (upper) ** 2 / (2 * L_sk))
+                                               + boom_con) + qb_11 + qb_10
 
-            print(x, '4th loop',s12 + run * self.boom_spacing)
+            print(x, '4th loop', s12 + run * self.boom_spacing)
             start += 1
             boom_con += self.boom_area * a[start, 1]
             x += 1
             run += 1
-        # qb_13 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[2,1]) + qb_12
-        # qb_14 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[3,1]) + qb_13
-        # qb_15 = (-1/self.Izz) * (self.t_sk * h * (self.boom_spacing - ((self.boom_spacing)**2 / (2 * L_sk))) + self.boom_area * a[4,1]) + qb_14
+
         qb_16 = (-1 / self.Izz) * (self.t_sk * h * (L_sk / 2) + boom_con) + qb_11 + qb_10
         self.qb[0, 2 * booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_16
-        print(x, 'qb_16',boom_con)
+        print(x, 'qb_16', boom_con)
+
+    def shear_centre(self):
+
+
 
         # # Redundant shear flow in left & right cell
         # # Computed by using matrices and solving for x
