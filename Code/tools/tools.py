@@ -352,7 +352,36 @@ class Aircraft(object):
 
         return self.qb
 
+
     #def shear_centre(self):
+    def moment_flow_from_shear_mid_spar(self):
+        qb = self.flow_from_shear()
+       ## moment is taken around y=0 at the spar
+
+        # cell 1 = semi circle
+        n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2) # number of booms in triangle part (lower or upper)
+        print('n_booms_triangle',n_booms_triangle)
+
+        int_start_pos = n_booms_triangle + 2    # start position of shear flow in array
+        print('start pos', int_start_pos)
+        n_steps_circ = (self.n_arc_half*2+1)+1  #number of steps in semicircle
+
+        q_start = qb[0,int_start_pos-1]+q[0,int_start_pos-2]    # shear flow at begining of integration
+        M_1 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* self.h/2           # integration start
+        for i in range(int_start_pos,int_start_pos+n_steps_circ):
+            M_1 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
+
+        # cell 2 = triangle
+        int_ start_pos = 0
+        n_steps_tri = n_booms_triangle + 1
+        M_2 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* self.h/2
+
+        for i in range(int_start_pos,int_start_pos+n_steps_circ):
+            M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
+
+
+
+    def shear_centre(self):
 
 
 
