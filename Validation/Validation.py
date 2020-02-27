@@ -231,7 +231,7 @@ Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:
 
 #print(Mises_shear_bending)
 #Data, numxentries, nodex, valueentry, inter_node
-ainterpolate_val(Mises_shear_bending,62,50,4,[-54,-250])
+a=interpolate_val(Mises_shear_bending,62,50,4,[-54,-250])
 
 print(a)
 
