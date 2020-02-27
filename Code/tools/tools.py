@@ -447,8 +447,19 @@ class Aircraft(object):
 
 
     def moment_flow_from_shear_mid_spar(self):
-        qb = self.flow_from_shear()
+        qb               = self.flow_from_shear()
+        n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
+        n_steps_circ     = (self.n_arc_half*2+1)+1
        ## moment is taken around y=0 at the spar
+        tmp = self.dtheta_dx()
+        qs01 = tmp[0]
+        qs02 = tmp[1]
+
+        qb[0,0:n_booms_triangle+1]                              += qs02
+        qb[0,n_booms_triangle]                                  += qs01-qs02
+        qb[0,n_booms_triangle+1:n_booms_triangle+n_steps_circ]  += qs01
+        qb[0,n_booms_triangle+n_steps_circ+1:n_booms_triangle+n_steps_circ+1+1]  += -qs01+qs02
+        qb[0,n_booms_triangle+n_steps_circ+1+1+1:2*n_booms_triangle+n_steps_circ+1+1+1+1]+= qs02
 
         # cell 1 = semi circle
         n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2) # number of booms in triangle part (lower or upper)
@@ -477,6 +488,10 @@ class Aircraft(object):
             M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
         M_2 = M_2 * 2                                                    #Due to symmetry
 
+        z_sc = -M_1-M_2+-self.h/2
+        print("M1: ", M_1)
+        print("M2: ", M_2)
+        return z_sc
 
 
     def shear_centre(self):
