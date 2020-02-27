@@ -103,3 +103,23 @@ def cubic_interpolator(coefficients, node, value, inter_node):
     si = a*(xi-inter_node)**3+b*(inter_node-x_i)**3+(y_i-c)*(xi-inter_node)/hi+(yi-d)*(inter_node-x_i)/hi
     return si
 
+
+
+#node = [0,1/6*np.pi,1/4*np.pi,0.5*np.pi,3/4*np.pi,5/6*np.pi,np.pi,7/6*np.pi,]
+node = [0]
+value = [0]
+x=0
+while x<2*np.pi:
+    x+=1/2*np.pi
+    y= np.sin(x)*np.cos(x)*x**2*np.log(x)
+    node.append(x)
+    value.append(y)
+
+inter_value = 0.13/10*np.pi#
+x=inter_value
+coefficients = cubic_coefficients(node,value)
+coefficientslin = spline_coefficient(node,value)
+Interp = cubic_interpolator(coefficients, node, value, inter_value)
+Interplin = spline_interpolator(coefficientslin, node, inter_value)
+print("interp:",Interp,"Actual",np.sin(x)*np.cos(x)*x**2*np.log(x))
+print("interplin:",Interplin,"Actuallin",np.sin(x)*np.cos(x)*x**2*np.log(x))
