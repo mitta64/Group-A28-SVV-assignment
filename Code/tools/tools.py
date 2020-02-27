@@ -237,17 +237,16 @@ class Aircraft(object):
     #========================
 
     def cell_lists(self):
-        try self.qb:
-            pass
-        except:
-            self.(flow_from_shear())
+        qb = self.(flow_from_shear())
 
-        spar_locations = np.where(self.qb == self.h/2)[1]
+        spar_locations = np.where(qb == self.h/2)[1]
 
         cell_1 = self.qb[:,5:10] #From spar cut along circ to spar cut
-        cell_2 = np.hstack(self.qb[:,0:spar_locations[0]+1], #from TE cut via lower to spar cut
-                 np.fliplr(self.qb[:,spar_locations[1]:]))#from spar cut via upper to TE cut
+        cell_2 = np.hstack(qb[:,0:spar_locations[0]+1], #from TE cut via lower to spar cut
+                 np.fliplr(qb[:,spar_locations[1]:]))#from spar cut via upper to TE cut
+        return cell_1, cell_2
 
+        
     def flow_from_shear(self,V=1):
         """Finds shear flow due to force V without q0,1/2 condistribution"""
         h       = self.h / 2                                # Radius of semi-cirle
