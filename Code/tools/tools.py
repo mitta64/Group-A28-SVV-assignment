@@ -370,19 +370,24 @@ class Aircraft(object):
         print('start pos', int_start_pos)
         n_steps_circ = (self.n_arc_half*2+1)+1  #number of steps in semicircle
 
-        q_start = qb[0,int_start_pos-1]+q[0,int_start_pos-2]    # shear flow at begining of integration
+        q_start = qb[0,int_start_pos-1]+qb[0,int_start_pos-2]    # shear flow at begining of integration
         M_1 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* self.h/2           # integration start
         for i in range(int_start_pos,int_start_pos+n_steps_circ):
+            #       ((qbi + qb i+1) * length)/2 * moment arm
             M_1 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
 
         # cell 2 = triangle
+        q_start = 0
         int_start_pos = 0
         n_steps_tri = n_booms_triangle + 1
-        M_2 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* self.h/2
+        x = self.boom_loc_area[-self.n_arc_half-1,0] + self.h/2
+        y = self.boom_loc_area[-self.n_arc_half-1,1]
+        moment_arm = np.sqrt(x**2+y**2)
+        M_2 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* moment_arm
 
         for i in range(int_start_pos,int_start_pos+n_steps_tri):
             M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
-        M_2 = M2 * 2                                                    #Due to symmetry
+        M_2 = M_2 * 2                                                    #Due to symmetry
 
     def dtheta_dx(self):
         n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
