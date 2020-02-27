@@ -381,8 +381,30 @@ class Aircraft(object):
         M_2 = M2 * 2                                                    #Due to symmetry
 
     def dtheta_dx(self):
-        # Cell 1 (circle)
+        n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2)
+        # Cell 1 (circle) going from the cut downwards
         a_1 = np.pi *(self.h/2)**2 /2
+
+         # spar 1st half
+        int_qb_sp_low = (self.qb[0,n_booms_triangle+2]*self.h/2)/(2*self.t_sp)  #line integral of qb/t
+        int_qs_01 = self.h/(2*self.t_sp)
+        int_qs_02 = - self.h/(2*self.t_sp)
+
+         # cir
+
+        q_start = qb[0, int_start_pos - 1] + q[0, int_start_pos - 2]  # shear flow at begining of integration
+        int_qb_circ = (q_start + qb[0, int_start_pos]) / 2 * qb[1, int_start_pos] * self.h / (2*self.t_sk)  # integration start
+        for i in range(int_start_pos, int_start_pos + n_steps_circ):
+            int_qb_circ += (qb[0, i] + qb[0, i + 1]) / 2 * qb[1, i + 1] /(self.t_sk)
+
+        int_qs_01 += np.pi * (self.h/2)**2/(2*self.t_sk)
+
+         # spar 2nd half
+
+        int_qb_sp_low += (self.qb[0, n_booms_triangle + 2] * self.h / 2) / (2 * self.t_sp)  # line integral of qb/t
+        int_qs_01 += self.h / (2 * self.t_sp)
+        int_qs_02 += - self.h / (2 * self.t_sp)
+
 
 
     def shear_centre(self):
