@@ -53,7 +53,7 @@ def integral_z(n,x_final=1.611,z_sc=None,res=1000):
     nodes = nodes_x
     if n == 2:
         matrix = spline_coefficient(nodes, solution)
-        solution = def_integral(spline_function,x1,x2,res)        
+        solution = def_integral(spline_function,x1,x_final,res)        
 
     else:
         for i in range(n-2):
@@ -62,7 +62,7 @@ def integral_z(n,x_final=1.611,z_sc=None,res=1000):
             nodes = np.linspace(x1,x2,len(solution))
 
         matrix = spline_coefficient(nodes, solution)
-        solution = def_integral(spline_function,x1,x2,res)
+        solution = def_integral(spline_function,x1,x_final,res)
 
     return solution
         
