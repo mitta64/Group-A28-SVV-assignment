@@ -354,6 +354,20 @@ class Aircraft(object):
         self.qb[0, 2 * booms_triangle + 3 + 2 * self.n_arc_half + 2] = qb_16
         print(x, 'qb_16', boom_con)
 
+    def moment_flow_from_shear_mid_spar(self):
+        qb = self.flow_from_shear()
+       ## moment is taken around y=0 at the spar
+
+        # cell 1 = semi circle
+        n_booms_triangle = int((self.n_st - (2 * self.n_arc_half + 1)) / 2) # number of booms in triangle part (lower or upper)
+
+        int_start_pos = n_booms_triangle + 2    # start position of shear flow in array
+        n_steps_circ = (self.n_arc_half*2+1)+1  #number of steps in semicircle
+        
+        for i in range(int_start_pos,int_start_pos+n_steps_circ+1)
+
+
+
     def shear_centre(self):
 
 
