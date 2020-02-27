@@ -228,6 +228,22 @@ Reaction_bending_nodes       = Reaction_bending_nodes[Reaction_bending_nodes[:,1
 Reaction_Jam_nodes           = Reaction_Jam_nodes[Reaction_Jam_nodes[:,1].argsort()]
 Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:,1].argsort()]
 
+#Meshes
+gridMises_shear_bending          = Mises_shear_bending[:,1:4]
+gridMises_shear_Jam              = Mises_shear_Jam[:,1:4]
+gridMises_shear_straight         = Mises_shear_straight[:,1:4]
+gridDisplacement_bending         = Displacement_bending[:,1:4]
+gridDisplacement_Jam             = Displacement_Jam[:,1:4]
+gridDisplacement_straight        = Displacement_straight[:,1:4]
+gridDisplacement_bending_nodes   = Displacement_bending_nodes[:,1:4]
+gridDisplacement_Jam_nodes       = Displacement_Jam_nodes[:,1:4]
+gridDisplacement_straight_nodes  = Displacement_straight_nodes[:,1:4]
+gridReaction_bending_nodes       = Reaction_bending_nodes[:,1:4]
+gridReaction_Jam_nodes           = Reaction_Jam_nodes[:,1:4]
+gridReaction_straight_nodes      = Reaction_straight_nodes[:,1:4]
+
+
+
 
 #print(Mises_shear_bending)
 #Data, numxentries, nodex, valueentry, inter_node
