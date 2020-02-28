@@ -360,7 +360,7 @@ class Aircraft(object):
         
         self.qb[1]+=self.qb[1][::-1]
 
-        return self.qb
+        #return self.qb
 
 
     #def shear_centre(self):
@@ -489,7 +489,7 @@ class Aircraft(object):
         M_2 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* moment_arm
 
         for i in range(int_start_pos,int_start_pos+n_steps_tri):
-            M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
+            M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * moment_arm
         M_2 = M_2 * 2                                                    #Due to symmetry
 
         z_sc = -M_1-M_2+-self.h/2
@@ -655,32 +655,27 @@ class Aircraft(object):
         h = self.h / 2
         # Length of triangular section
         L_sk = math.sqrt((self.C_a - h) ** 2 + h ** 2)
-
-        # Compute q0_2, q0_1, dtheta_dz and self.J
-        # A = X * q0_2
-        'Old method'
-        # A = (2 * (self.C_a - h)) / (h * self.G * self.t_sk)
-        # + (4 * (self.C_a - h)) / (np.pi * h * self.G * self.t_sp)
-        # + (2) / (self.G * self.t_sp)
-
-        # X = (2 * np.pi * h * L_sk) / (self.G * self.t_sk)
-        # + (2 * np.pi * h ** 2) / (self.G * self.t_sp)
-        # + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
-        # + ((2 * h * (self.C_a - h)) ** 2) / ((h) ** 2 * self.G * self.t_sk)
-        # + (8 * (h * (self.C_a - h)) ** 2) / (np.pi * (h) ** 2 * self.G * self.t_sp)
-        # + (4 * h * (self.C_a - h)) / (self.G * self.t_sp)
-
-        # self.q0_2 = A / X
-
-        # # From Torque equation obtained
-        # self.q0_1 = (1 - (2 * h * (self.C_a - h)) * self.q0_2) / (np.pi * (h)**2)
-
-        # # Cell I dtheta_dz used
-        # dtheta_dz = (1 / (np.pi * h)) * ((self.q0_1 * np.pi) / (self.G * self.t_sk)
-        #                                  + (2 * (self.q0_1 - self.q0_2)) / (self.G * self.t_sp))
-
-        'New method'
-
+        # Enclosed areas
+        A_1 = (np.pi * h**2) / 2
+        A_2 = h * (self.C_a * h)
+        # Unit torque
+        T = 1
+        
+        # Solve Ax = b with x = q1, q2, dtheta/dx
+        A = np.array([[2 * A_1, 2 * A_2, 0],
+                      [(1/(2 * A_1)) * ((np.pi * h) / (self.G * self.t_sk) + (2 * h) / (self.G * self.t_sp)), (-1 / (2 * A_1)) * ((2 * h) / (self.G * self.t_sp)), -1], 
+                      [(-1/(2 * A_2)) * ((2 * h) / (self.G * self.t_sp)), (1/(2*A_2)) * ((2 * h) / (self.G * self.t_sp) + (2 * L_sk) / (self.G * self.t_sk)), -1]])
+        #print(A)
+        
+        b = np.array([[T], [0], [0]])
+        #print(b)
+        x = np.linalg.solve(A,b)
+        #print(x)
+        dtheta_dx = x[2]
+        
+        self.J = T / (self.G * dtheta_dx)
+        #print(self.J)
+        
     def plot_aileron(self):
         step_n = 100
         theta_step =np.linspace(-np.pi/2,np.pi/2,step_n)
