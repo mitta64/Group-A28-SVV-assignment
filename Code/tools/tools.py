@@ -949,7 +949,7 @@ def integral_x(n, res=1000):
 """"Deformation plotting"""
 
 
-def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
+def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , xcoord = None, totalnodes=20):
     """
     plot = "deflection_y" or "deflection_z" or "twist"
     whichplot = "1" or "2" or "3" or "4" for specific plot to save time
@@ -1070,7 +1070,6 @@ def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
         + h/2*P*np.cos(alpha)*macaulay(x,ksi2,1) 
         - integral_z(3,x_final=x,z_sc=zsc) ) 
         + C5 ) 
-        print(twist)
         return twist
     
     def torque(x): # plot 2
@@ -1089,36 +1088,52 @@ def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
 #        nodes = np.linspace(0, 1.611, 41)
 #        matrix = spline_coefficient(nodes, integral_z(1,x,z_sc=zsc))
         return integral_z(1,x,zsc)
-    
-    xcoord = "DEFINE"
-    """All data and no plot"""
-    if plot == "alldata":
-        print("Order of data: 0v, 1dvdx, 2Mz, 3Sy, 4w, 5dwdx, 6My, 7Sz, 8twist, 9torque, 10dist-torque")
-        return v_deflection(xcoord), dvdx(xcoord), Mz(xcoord), Sy(xcoord), w_deflection(xcoord), dwdx(xcoord), My(xcoord), Sz(xcoord), twist(xcoord), torque(xcoord), dist_torque(xcoord) 
 
-     """Just specific data and no plot"""
-    elif plot == "v":
-        return v_deflection(xcoord)
+    data = []
+    if plot == "v":
+        for j in xcoord:
+            data.append(v_deflection(j))
+        return data
     elif plot == "dvdx":
-        return dvdx(xcoord)
+        for j in xcoord:
+            data.append(dvdx(j))
+        return data
     elif plot == "Mz":
-        return Mz(xcoord)
+        for j in xcoord:
+            data.append(Mz(j))
+        return data
     elif plot == "Sy":
-        return Sy(xcoord)
+        for j in xcoord:
+            data.append(Sy(j))
+        return data
     elif plot == "w":
-        return w_deflection(xcoord)
+        for j in xcoord:
+            data.append(w_deflection(j))
+        return data
     elif plot == "dwdx":
-        return dwdx(xcoord)
+        for j in xcoord:
+            data.append(dwdx(j))
+        return data
     elif plot == "My":
-        return My(xcoord)
+        for j in xcoord:
+            data.append(My(j))
+        return data
     elif plot == "Sz":
-        return Sz(xcoord)
+        for j in xcoord:
+            data.append(Sz(j))
+        return data
     elif plot == "twist":
-        return twist(xcoord)
+        for j in xcoord:
+            data.append(twist(j))
+        return data
     elif plot == "torque":
-        return torque(xcoord)
+        for j in xcoord:
+            data.append(torque(j))
+        return data
     elif plot == "disttorque":
-        return dist_torque(xcoord)
+        for j in xcoord:
+            data.append(dist_torque(j))
+        return data
     
 
     elif plot == "deflection_y":
@@ -1351,6 +1366,6 @@ def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
             plt.show()  
         elif whichplot == 4:
             print("no plot 4 for twist")
-
+    
 
 

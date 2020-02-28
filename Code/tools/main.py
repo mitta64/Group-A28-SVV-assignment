@@ -98,4 +98,5 @@ unknowns = matrix(B737.theta,
 				  B737.d_3,
 				  I)
 
+xcoord = np.arange(0, B737.l_a, 24.5714283/1000)
 #deflectionplot(B737, I,unknowns,"twist")
