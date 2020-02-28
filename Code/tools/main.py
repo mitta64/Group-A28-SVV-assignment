@@ -17,13 +17,13 @@ A320 = Aircraft("Airbus A320", 0.547, 2.771, 0.153, 1.281, 2.681, 28., 22.5, 1.1
 
 #I = [f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]
 #=======================================================================================
-print "[f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]"
+print("[f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z]")
 I_1 = [f100.Izz, f100.Iyy, f100.G, 0, f100.E, 0]
 I_2 = [4.753851442684436e-06, 4.5943507864451845e-05, f100.G, 7.748548555816593e-06, f100.E,
      -0.08553893540215983]  # testing true data
-print I_1
-print I_2
-print np.array(I_1)-np.array(I_2)
+print(I_1)
+print(I_2)
+print(np.array(I_1)-np.array(I_2))
 
 # =======================================================================================
 # print([f100.Izz, f100.Iyy, f100.G, f100.J, f100.E, f100.shear_centre_z])
@@ -84,7 +84,7 @@ cross_ver = {'nst': 15, 'Ca': 0.605, 'ha': 0.205, 'tsk': 0.0011,
 B737 = Aircraft("B737",0.605,2.661,0.172,1.211,2.591, 35., 20.5,  1.1,   2.8, 1.2,  1.6,  1.9,  15,1.154,1.840,   28.,97.4)
 
 #I = (   I_zz,     I_yy,      G,   			  J, E,     z_sc)
-I = [f100.Izz, f100.Iyy, f100.G, cross_ver['J'], f100.E, cross_ver['zsc']]
+I = [B737.Izz, B737.Iyy, B737.G, cross_ver['J'], B737.E, cross_ver['zsc']]
 
 unknowns = matrix(B737.theta,
 				  B737.h,
