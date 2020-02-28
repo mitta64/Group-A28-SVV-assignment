@@ -97,4 +97,4 @@ unknowns = matrix(B737.theta,
 				  B737.d_3,
 				  I)
 
-deflectionplot(I,unknowns,"deflection_y")
+deflectionplot(B737, I,unknowns,"deflection_y")

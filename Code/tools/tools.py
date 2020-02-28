@@ -932,7 +932,7 @@ def integral_x(n, res=1000):
 """"Deformation plotting"""
 
 
-def deflectionplot(I,unknowns,plot, whichplot = None , totalnodes=20):
+def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
     """
     plot = "deflection_y" or "deflection_z" or "twist"
     whichplot = "1" or "2" or "3" or "4" for specific plot to save time
@@ -949,16 +949,16 @@ def deflectionplot(I,unknowns,plot, whichplot = None , totalnodes=20):
     C3  = unknowns[9][0]
     C4  = unknowns[10][0]
     C5  = unknowns[11][0]
-    P   = f100.P
-    h   = f100.h
-    x1  = f100.x_1
-    x2  = f100.x_2
-    x3  = f100.x_3
-    xa  = f100.x_a
+    P   = Aircraft.P
+    h   = Aircraft.h
+    x1  = Aircraft.x_1
+    x2  = Aircraft.x_2
+    x3  = Aircraft.x_3
+    xa  = Aircraft.x_a
     ksi1    = x2 - xa/2
     ksi2    = x2 + xa/2
-    alpha   = math.radians(f100.theta)
-    l_a     = f100.l_a
+    alpha   = math.radians(Aircraft.theta)
+    l_a     = Aircraft.l_a
     """I = (I_zz, I_yy, G, J, E, z_sc)""" 
     zsc = I[5]
     eta = -h/2 - zsc
@@ -1268,7 +1268,7 @@ def deflectionplot(I,unknowns,plot, whichplot = None , totalnodes=20):
             plot3.set_title("Distributed torque")
             plot3.set_xlabel('x')
             plot3.set_ylabel('τ(x)')
-            plt.plot(np.linspace(0,f100.l_a,41),integral_z(1),label='Num. model',color='orange')    
+            plt.plot(np.linspace(0,Aircraft.l_a,41),integral_z(1),label='Num. model',color='orange')    
             plt.legend()
             plt.tight_layout()
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
