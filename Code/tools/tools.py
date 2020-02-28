@@ -702,6 +702,7 @@ class Aircraft(object):
         self.plot_aileron(plot=False)
         stress      = lambda z, y:My/self.Iyy*z + Mz/self.Izz*y
         self.sigma  = stress(self.lines[0],self.lines[1])
+        
 
         if plot:
             plt.subplot(111,aspect='equal')
@@ -714,7 +715,8 @@ class Aircraft(object):
             plt.gca().invert_xaxis()
             plt.grid()
             plt.show()
-    
+
+        return self.sigma
         
             
         
@@ -1087,8 +1089,12 @@ def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
 #        nodes = np.linspace(0, 1.611, 41)
 #        matrix = spline_coefficient(nodes, integral_z(1,x,z_sc=zsc))
         return integral_z(1,x,zsc)
-    
-    if plot == "deflection_y":
+    if plot = 'alldata':
+        xcoord = np.linspace(0,l_a,10000000000000000000)
+        return v_deflection(xcoord)
+
+
+    elif plot == "deflection_y":
         if whichplot == None:
             ydata_1 = []
             ydata_2 = []
