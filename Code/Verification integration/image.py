@@ -4,7 +4,7 @@ from numpy import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import csv
-
+from data import picture, aero_data, transpose
 
 # Read the files
 file="aerodynamicloadf100.dat"
@@ -49,11 +49,12 @@ for r in number_table:
 ##height = len(image)
 
 
-coord_sys=(1.611,0,-0.505,0)
 plt.xlabel('x-axis')
 plt.ylabel('z-axis')
 
-plt.imshow(image, extent=coord_sys,interpolation='nearest', cmap=cm.gist_rainbow)
+coord_sys=(1.611,0,-0.505,0)
+
+plt.imshow(picture, extent=coord_sys,interpolation='nearest', cmap=cm.gist_rainbow)
 plt.colorbar()
 plt.show()
 
