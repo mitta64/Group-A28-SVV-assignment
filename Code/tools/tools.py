@@ -485,7 +485,7 @@ class Aircraft(object):
         M_2 = (q_start + qb[0,int_start_pos])/2 *qb[1,int_start_pos]* moment_arm
 
         for i in range(int_start_pos,int_start_pos+n_steps_tri):
-            M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * self.h/2
+            M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * moment_arm
         M_2 = M_2 * 2                                                    #Due to symmetry
 
         z_sc = -M_1-M_2+-self.h/2
