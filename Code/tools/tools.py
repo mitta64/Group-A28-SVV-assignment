@@ -8,7 +8,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from data import aero_data, grid, transpose
+from data import aero_data, grid, nodes_z, nodes_x, times_z, transpose
+from integrator import def_integral, indef_integral
+from interpolator import spline_coefficient, spline_interpolator
+from interpolator import cubic_interpolator, cubic_coefficients
 import copy
 
 #=======================================================================================
@@ -42,6 +45,7 @@ class Aircraft(object):
         self.booms()
         self.centroid()
         self.second_moi()
+        #f100.shear_centre()
         self.torsional_stiffness()
 
     def description(self):
@@ -931,12 +935,7 @@ def integral_x(n, res=1000):
 
 #=====================================================================
 """"Deformation plotting"""
-# def matrix(alpha, h, x_1, x_2, x_3, x_a, P, d1, d3, I):
-#(R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)
-#   0     1     2    3     4     5     6    7    8    9    10   11
-unknowns = matrix(f100.theta, f100.h, f100.x_1, f100.x_2, f100.x_3, f100.x_a, f100.P, f100.d_1, f100.d_3, I)
 
-R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5 = unknowns
 
 def deflectionplot(plot, whichplot = None , totalnodes=20):
     """
