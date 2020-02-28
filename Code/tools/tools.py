@@ -932,7 +932,7 @@ def integral_x(n, res=1000):
 """"Deformation plotting"""
 
 
-def deflectionplot(unknowns,plot, whichplot = None , totalnodes=20):
+def deflectionplot(I,unknowns,plot, whichplot = None , totalnodes=20):
     """
     plot = "deflection_y" or "deflection_z" or "twist"
     whichplot = "1" or "2" or "3" or "4" for specific plot to save time
