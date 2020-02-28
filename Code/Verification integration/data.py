@@ -92,10 +92,9 @@ def times_z(aero_data, nodes_z, z_sc):
     aero_data_z = [] 
     for row in range(len(aero_data)): 
         factor = nodes_z[row] + z_sc 
-        new_row = np.array(aero_data[row])*factor 
+        new_row = np.array(aero_data[row])*factor
         aero_data_z.append(new_row) 
-        grid_z = transpose(aero_data_z) 
-    return grid_z 
+    return aero_data_z 
  
  
 pi=3.14159265359 
@@ -113,11 +112,9 @@ for i in range(1,Nx+2):
     theta_x.append((i-1)/Nx*pi) 
 for t in range(len(theta_x)-1): 
     nodes_x.append(1/2*(la/2*(1-np.cos(theta_x[t]))+la/2*(1-np.cos(theta_x[t+1])))) 
- 
+
  
 f100 = Aircraft(name,C_a,l_a,x_1,x_2,x_3,x_a,h,t_sk,t_sp,t_st,h_st,w_st,n_st,d_1,d_3,theta,P) 
 aero_data = retrieve_aero_data() 
 grid = transpose(aero_data) 
- 
- 
  
