@@ -6,7 +6,6 @@ Created on Mon Feb 17 13:04:56 2020
 """
 import numpy as np
 import tools
-import matplotlib.pyplot as plt
 
 def _theta(i, N):
     # i: i-th node
@@ -24,7 +23,7 @@ la = 1.611
 Ca = 0.505
 zcoord = [] #chordwise - 81 elements
 for i in np.arange(81):
-    zcoord.append(_coord(Ca, _theta(i, 81), _theta(i+1,41)) )
+    zcoord.append(_coord(Ca, _theta(i, 41), _theta(i+1,41)) )
     
 xcoord = [] #spanwise - 41 elements
 for j in np.arange(41):
@@ -44,8 +43,4 @@ for line in lines:
     qforces.append(spanwise)
     
 qforces = np.array(qforces) #chord*span (z*x) = (81*41)
-
-#plt.figure()
-#plt.scatter(xcoord, zcoord)
-#plt.show()
-#    
+    
