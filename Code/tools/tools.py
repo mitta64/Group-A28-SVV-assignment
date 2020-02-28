@@ -360,7 +360,7 @@ class Aircraft(object):
         
         self.qb[1]+=self.qb[1][::-1]
 
-        #return self.qb
+        return self.qb
 
 
     #def shear_centre(self):
@@ -492,7 +492,7 @@ class Aircraft(object):
             M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * moment_arm
         M_2 = M_2 * 2                                                    #Due to symmetry
 
-        z_sc = -M_1-M_2+-self.h/2
+        z_sc = M_1 + M_2+-self.h/2
         print("M1: ", M_1)
         print("M2: ", M_2)
         return z_sc
@@ -1089,10 +1089,37 @@ def deflectionplot(Aircraft, I,unknowns,plot, whichplot = None , totalnodes=20):
 #        nodes = np.linspace(0, 1.611, 41)
 #        matrix = spline_coefficient(nodes, integral_z(1,x,z_sc=zsc))
         return integral_z(1,x,zsc)
-    if plot = 'alldata':
-        xcoord = np.linspace(0,l_a,10000000000000000000)
-        return v_deflection(xcoord)
+    
+    xcoord = "DEFINE"
+    """All data and no plot"""
+    if plot == "alldata":
+        print("Order of data: 0v, 1dvdx, 2Mz, 3Sy, 4w, 5dwdx, 6My, 7Sz, 8twist, 9torque, 10dist-torque")
+        return v_deflection(xcoord), dvdx(xcoord), Mz(xcoord), Sy(xcoord), w_deflection(xcoord), dwdx(xcoord), My(xcoord), Sz(xcoord), twist(xcoord), torque(xcoord), dist_torque(xcoord) 
 
+     """Just specific data and no plot"""
+    elif plot == "v":
+        return v_deflection(xcoord)
+    elif plot == "dvdx":
+        return dvdx(xcoord)
+    elif plot == "Mz":
+        return Mz(xcoord)
+    elif plot == "Sy":
+        return Sy(xcoord)
+    elif plot == "w":
+        return w_deflection(xcoord)
+    elif plot == "dwdx":
+        return dwdx(xcoord)
+    elif plot == "My":
+        return My(xcoord)
+    elif plot == "Sz":
+        return Sz(xcoord)
+    elif plot == "twist":
+        return twist(xcoord)
+    elif plot == "torque":
+        return torque(xcoord)
+    elif plot == "disttorque":
+        return dist_torque(xcoord)
+    
 
     elif plot == "deflection_y":
         if whichplot == None:
