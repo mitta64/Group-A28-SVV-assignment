@@ -698,7 +698,22 @@ class Aircraft(object):
         plt.grid()
         plt.show()
 
+    def bending_stress(self, My, Mz, plot=False):
+        self.plot_aileron(plot=False)
+        stress      = lambda z, y:My/self.Iyy*z + Mz/self.Izz*y
+        self.sigma  = stress(self.lines[0],self.lines[1])
 
+        if plot:
+            plt.subplot(111,aspect='equal')
+            points = plt.scatter(self.lines[0], self.lines[1], c=self.sigma, cmap='hsv', label = 'Stress[Mpa]')
+            plt.colorbar(points)
+            plt.title(self.name )
+            plt.xlabel('z axes [m]')
+            plt.ylabel('y axes [m]')
+            plt.legend()
+            plt.gca().invert_xaxis()
+            plt.grid()
+            plt.show()
     
         
             
