@@ -13,12 +13,12 @@ h = 0.161  # m
 t_sk = 1.1/1000  # m 
 t_sp = 2.4/1000  # m 
 t_st = 1.2/1000  # m 
-h_st = 13/1000   # m 
-w_st = 17/1000   # m 
+h_st = 13./1000   # m 
+w_st = 17./1000   # m 
 n_st = 11  # - 
 d_1 = 0.00389  # m 
 d_3 = 0.01245  # m 
-theta = 0 
+theta = 30 
 P = 49.2*1000  # N 
  
 class Aircraft(object): 
