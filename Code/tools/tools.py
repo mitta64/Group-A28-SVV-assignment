@@ -360,7 +360,7 @@ class Aircraft(object):
         
         self.qb[1]+=self.qb[1][::-1]
 
-        #return self.qb
+        return self.qb
 
 
     #def shear_centre(self):
@@ -492,7 +492,7 @@ class Aircraft(object):
             M_2 += (qb[0,i] + qb[0,i + 1])/2 * qb[1,i+1] * moment_arm
         M_2 = M_2 * 2                                                    #Due to symmetry
 
-        z_sc = -M_1-M_2+-self.h/2
+        z_sc = M_1 + M_2+-self.h/2
         print("M1: ", M_1)
         print("M2: ", M_2)
         return z_sc
