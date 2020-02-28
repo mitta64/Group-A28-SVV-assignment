@@ -99,6 +99,10 @@ unknowns = matrix(B737.theta,
 				  I)
 
 xcoord = np.arange(0, B737.l_a, 24.5714283/1000)
-#deflectionplot(B737, I,unknowns,"twist")
+
+deflection_z = deflectionplot(B737, I,unknowns,"w",xcoord= xcoord)
+deflection_y = deflectionplot(B737, I,unknowns,"v",xcoord= xcoord)
+
 for i,j in enumerate("(R_1y, R_2y, R_3y, R_1z, R_2z, R_3z, R_i, C_1, C_2, C_3, C_4, C_5)".split(',')):
 	print(j, unknowns[i])
+
