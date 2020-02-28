@@ -230,7 +230,7 @@ Reaction_straight_nodes      = Reaction_straight_nodes[Reaction_straight_nodes[:
 
 #Meshes
 gridMises_shear_bending          = Mises_shear_bending[:,1:4]
-gridMises_shear_Jam              = Mises_shear_Jam[:,1:4]
+gridMises_shear_Jam              = Mises_shear_Jam[:,1]
 gridMises_shear_straight         = Mises_shear_straight[:,1:4]
 gridDisplacement_bending         = Displacement_bending[:,1:4]
 gridDisplacement_Jam             = Displacement_Jam[:,1:4]
@@ -242,17 +242,29 @@ gridReaction_bending_nodes       = Reaction_bending_nodes[:,1:4]
 gridReaction_Jam_nodes           = Reaction_Jam_nodes[:,1:4]
 gridReaction_straight_nodes      = Reaction_straight_nodes[:,1:4]
 
+y= []
+x = []
 
+for i in range(107):
+    a = interpolate_val(Displacement_Jam, 61, i, 6, [0,10.25])
+    x.append(Displacement_Jam[i*62,1])
+    y.append(a)
 
+fig= plt.figure()
+plt.plot(x,y)
+plt.xlabel("x(mm)")
+plt.ylabel("Displacement(mm)")
 
-#print(Mises_shear_bending)
-#Data, numxentries, nodex, valueentry, inter_node
-a=interpolate_val(Mises_shear_bending,62,50,4,[-54,-250])
 
 
 
 #figures for halfway the aileron
 #Bending
+
+
+
+plt.xlabel("x (mm)")
+plt.ylabel("Displacement (mm)")
 
 ys = np.array(Mises_shear_bending[53*62:54*62,2])
 zs = np.array(Mises_shear_bending[53*62:54*62,3])
@@ -276,17 +288,18 @@ axs[0,1].scatter(ys,zs, c = np.array(Displacement_bending[53*61:54*61,4]),cmap =
 
 
 
-
 plt.show()
 
 
 fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+
+#ax = fig.add_subplot(111, projection='3d')
 xs = np.array(Mises_shear_bending[:,1])
 ys = np.array(Mises_shear_bending[:,2])
 zs = np.array(Mises_shear_bending[:,3])
-print(ys)
-ax.scatter(xs,ys, zs, c = np.array(Mises_shear_bending[:,5]),cmap = "seismic")
+plt.scatter(ys,zs, c = np.array(Mises_shear_bending[:,5]),cmap = "seismic")
+
+#ax.scatter(xs,ys, zs, c = np.array(Mises_shear_bending[:,5]),cmap = "seismic")
 #plt.scatter(ys, zs, c = np.array(Mises_shear_bending[50*62:51*62,4]),cmap = "seismic")
 #plt.colorbar()
 
@@ -295,15 +308,26 @@ ax = fig.add_subplot(111, projection='3d')
 xs = np.array(Displacement_Jam[:,1])
 ys = np.array(Displacement_Jam[:,2])
 zs = np.array(Displacement_Jam[:,3])
-print(ys)
+
 ax.scatter(xs,ys, zs, c = np.array(Displacement_Jam[:,4]),cmap = "seismic")
 
 plt.show()
 
 
 
+
 #----------------------------------------------------------------------------------------
 #Error calculations:
 NumresMises_shear = []
+
 #err = (NumresMises_shear-Mises_shear_bending)
 #err = np.linalg.norm
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+xs = np.array(Displacement_Jam[:,1])
+ys = np.array(Displacement_Jam[:,2])
+zs = np.array(Displacement_Jam[:,3])
+
+ax.scatter(xs,ys, zs, c = np.array(Err),cmap = "seismic")
+
